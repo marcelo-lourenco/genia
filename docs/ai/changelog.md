@@ -154,3 +154,12 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
   - Instituída a governança de atualização contínua: a cada implementação/melhoria a documentação viva deve ser sincronizada, e qualquer nova diretriz ou anti-pattern deve ser incorporada imediatamente à base de conhecimento dos agentes.
 - **Simplificação de Nomenclatura de Interface:**
   - Padronização dos botões de autenticação do Header e do modal `LoginForm` para o rótulo direto *"Entrar"*, substituindo *"Entrar no GENIA"*.
+- **Depreciação e Limpeza de Variáveis de Ambiente:**
+  - Remoção completa de `FAMILYSEARCH_USER_NAME` de `.env`, `.env.example`, `src/lib/env.ts` e `README.md`.
+  - Endpoint `/api/auth/profile` agora extrai os nomes diretamente do perfil autenticado do FamilySearch (`fsUser?.displayName` / `fsUser?.contactName`), sem dependência de variáveis estáticas.
+- **Sanitização de Segurança & Blindagem contra Exposição de PII:**
+  - Erradicação absoluta de credenciais, senhas, tokens de sessão, e-mails, nomes reais e identificadores de árvores (Tree IDs) hardcoded no código-fonte.
+  - Campos de login em `LoginForm.tsx` inicializados estritamente vazios, com placeholders neutros.
+  - Remoção de tokens e nomes mockados do `Header.tsx`, `layout.tsx` e rotas de autenticação.
+  - Reformulação completa da página `/my-tree` para renderização **100% dinâmica**: consome o perfil autenticado (`/api/auth/profile`) e a API do FamilySearch (`/api/mcp`), permitindo busca por qualquer ID com numeração Ahnen genealógica oficial.
+  - Atualização de `docs/ai/rules.md` (Seção 5) formalizando a regra inegociável de zero hardcoding de dados pessoais.

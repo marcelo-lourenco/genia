@@ -156,7 +156,7 @@ export function TreeAuditView({ initialData }: TreeAuditViewProps) {
                   id="root-id"
                   value={personId}
                   onChange={(e) => setPersonId(e.target.value.toUpperCase())}
-                  placeholder="Ex: KWQS-BB1, GYT8-36P..."
+                  placeholder="Ex: KWQS-BB1, LXYZ-123..."
                   className="w-full px-3 py-2 rounded-xl bg-background border border-input text-xs text-foreground font-mono shadow-xs focus:ring-1 focus:ring-ring focus:outline-none"
                 />
                 <button
@@ -208,16 +208,6 @@ export function TreeAuditView({ initialData }: TreeAuditViewProps) {
               className="px-3 py-1.5 rounded-lg text-2xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer transition-colors"
             >
               Exemplo Raiz (KWQS-BB1)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPersonId("GYT8-36P");
-                handleAudit("GYT8-36P");
-              }}
-              className="px-3 py-1.5 rounded-lg text-2xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer transition-colors"
-            >
-              Exemplo Árvore (GYT8-36P)
             </button>
           </div>
         </div>

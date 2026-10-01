@@ -73,8 +73,8 @@ export function Header({ user: initialUser, onLogout }: HeaderProps) {
     rawToken: string;
   }>({
     environment: "production",
-    tokenMasked: "p0-7_3u8...0a1",
-    rawToken: "p0-7_3u8UAEByP.6C5OFaak0a1",
+    tokenMasked: "••••••••••••",
+    rawToken: "",
   });
 
   useEffect(() => {
@@ -365,7 +365,7 @@ export function Header({ user: initialUser, onLogout }: HeaderProps) {
                   Nome
                 </span>
                 <span className="font-bold text-foreground">
-                  {currentUser?.name || "Marcelo Lourenço"}
+                  {currentUser?.name || "Usuário FamilySearch"}
                 </span>
               </div>
 
@@ -374,7 +374,7 @@ export function Header({ user: initialUser, onLogout }: HeaderProps) {
                   Usuário
                 </span>
                 <span className="font-mono text-muted-foreground">
-                  {currentUser?.username || "@MarceloLourenço6"}
+                  {currentUser?.username || "@usuario"}
                 </span>
               </div>
 
@@ -383,7 +383,7 @@ export function Header({ user: initialUser, onLogout }: HeaderProps) {
                   Identificador (Tree ID)
                 </span>
                 <span className="font-mono bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-2xs font-semibold">
-                  {currentUser?.treeUserId || "GYT8-36P"}
+                  {currentUser?.treeUserId || "—"}
                 </span>
               </div>
 

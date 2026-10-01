@@ -22,12 +22,16 @@ export default async function RootLayout({
 
   const userProfile = session
     ? {
-        name: fsUser?.displayName || fsUser?.contactName || "Marcelo Lourenço",
-        username: "@MarceloLourenço6",
+        name: fsUser?.displayName || fsUser?.contactName || "Usuário FamilySearch",
+        username: fsUser?.contactName
+          ? `@${fsUser.contactName}`
+          : fsUser?.displayName
+            ? `@${fsUser.displayName.toLowerCase().replace(/\s+/g, "")}`
+            : "@usuario",
         contactName: fsUser?.contactName,
         displayName: fsUser?.displayName,
         email: fsUser?.email,
-        treeUserId: fsUser?.treeUserId || fsUser?.id || "GYT8-36P",
+        treeUserId: fsUser?.treeUserId || fsUser?.id || "",
       }
     : null;
 

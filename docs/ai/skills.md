@@ -46,7 +46,7 @@ Este documento descreve as ferramentas ativas expostas pelo servidor **Model Con
 * **Parâmetros de Entrada:**
   | Campo | Tipo | Obrigatório | Descrição |
   | :--- | :--- | :--- | :--- |
-  | `personId` | `string` | **Sim** | Identificador FamilySearch da pessoa raiz (ex: "GYT8-36P" ou "KWQS-BB1") |
+  | `personId` | `string` | **Sim** | Identificador FamilySearch da pessoa raiz (ex: "KWQS-BB1" ou "LXYZ-123") |
   | `generations` | `number` | Não | Profundidade de gerações a explorar (padrão: 4, máx: 8) |
 * **Exemplo de Chamada POST:**
   ```json

@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // If username & password are supplied, link to the authenticated FamilySearch session
     if (!token || token.startsWith("USYS4d")) {
       const env = getEnv();
-      token = env.FAMILYSEARCH_SESSION_ID || "p0-7_3u8UAEByP.6C5OFaak0a1";
+      token = env.FAMILYSEARCH_SESSION_ID || "";
     }
 
     if (!token || typeof token !== "string" || token.length < 5) {

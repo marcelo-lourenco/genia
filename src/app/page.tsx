@@ -72,7 +72,7 @@ export default function Home() {
               Gráfico de Pedigree
             </span>
             <span className="px-2.5 py-1 bg-muted rounded-md border border-border">
-              ID GYT8-36P
+              Visualização Dinâmica
             </span>
           </div>
         </Link>

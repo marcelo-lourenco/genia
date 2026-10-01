@@ -423,7 +423,7 @@ export default function SearchPage() {
               </label>
               <input
                 id="tree-person-id"
-                placeholder="Ex: GYT8-36P ou KWQS-BB1"
+                placeholder="Ex: KWQS-BB1 ou LXYZ-123"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>

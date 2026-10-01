@@ -12,8 +12,8 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, onCancel }: LoginFormProps) {
-  const [username, setUsername] = useState("MarceloLourenço6");
-  const [password, setPassword] = useState("••••••••••••");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +50,7 @@ export function LoginForm({ onSuccess, onCancel }: LoginFormProps) {
       } else {
         if (onSuccess) {
           onSuccess({
-            name: "Marcelo Lourenço",
+            name: username || "Usuário Conectado",
             username: username.startsWith("@") ? username : `@${username}`,
           });
         }
@@ -102,7 +102,7 @@ export function LoginForm({ onSuccess, onCancel }: LoginFormProps) {
             <Input
               id="username"
               type="text"
-              placeholder="Ex: MarceloLourenço6"
+              placeholder="Seu usuário ou e-mail"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required

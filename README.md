@@ -97,7 +97,6 @@ GEMINI_API_KEY=sua_chave_gemini_aqui
 # FamilySearch API
 FAMILYSEARCH_ENVIRONMENT=production
 FAMILYSEARCH_SESSION_ID=seu_bearer_token_ativo
-FAMILYSEARCH_USER_NAME=seu_usuario_familysearch
 
 # Segurança de Sessão
 SESSION_SECRET=chave_secreta_com_32_ou_mais_caracteres_hex

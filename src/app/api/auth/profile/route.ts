@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getEnv } from "@/lib/env";
 import { getCurrentUser } from "@/services/familysearch/user";
 import { getSession } from "@/services/storage/session";
 
@@ -11,24 +10,20 @@ export async function GET() {
     }
 
     const fsUser = await getCurrentUser();
-    const env = getEnv();
-
-    const username = env.FAMILYSEARCH_USER_NAME || "MarceloLourenço6";
+    const displayName = fsUser?.displayName || fsUser?.contactName || "Usuário FamilySearch";
+    const usernameRaw = fsUser?.contactName || fsUser?.displayName || "usuario";
+    const username = usernameRaw.startsWith("@") ? usernameRaw : `@${usernameRaw}`;
 
     return NextResponse.json({
       authenticated: true,
       user: {
-        name:
-          fsUser?.displayName ||
-          fsUser?.contactName ||
-          env.FAMILYSEARCH_USER_NAME ||
-          "Marcelo Lourenço",
-        username: username.startsWith("@") ? username : `@${username}`,
-        displayName: fsUser?.displayName || "Marcelo Lourenço",
-        contactName: fsUser?.contactName || "Marcelo Lourenço",
-        email: fsUser?.email || "marcelo.lourenco@familysearch.org",
-        treeUserId: fsUser?.treeUserId || fsUser?.id || "GYT8-36P",
-        id: fsUser?.id || "GYT8-36P",
+        name: displayName,
+        username: username,
+        displayName: displayName,
+        contactName: fsUser?.contactName || displayName,
+        email: fsUser?.email || "",
+        treeUserId: fsUser?.treeUserId || fsUser?.id || "",
+        id: fsUser?.id || "",
         avatarUrl: null, // Sem placeholder - usa fallback com iniciais
       },
       session: {

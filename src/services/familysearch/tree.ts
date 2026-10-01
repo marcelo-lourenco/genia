@@ -7,6 +7,7 @@ export interface AncestryNode {
   ahnenNumber: number; // 1 = root, 2 = father, 3 = mother, 4 = paternal grandfather, etc.
   name: string;
   gender?: string;
+  lifespan?: string;
   birthDate?: string;
   birthPlace?: string;
   deathDate?: string;
@@ -46,15 +47,26 @@ export async function getTreeAncestors(
 
   // Parse each person in the ancestry response
   for (const [id, person] of personsMap.entries()) {
-    const primaryName = person.names?.[0]?.nameForms?.[0]?.fullText || "Indivíduo Desconhecido";
+    const primaryName =
+      person.display?.name || person.names?.[0]?.nameForms?.[0]?.fullText || "Indivíduo";
     const birthFact = person.facts?.find((f) => f.type.includes("Birth"));
     const deathFact = person.facts?.find((f) => f.type.includes("Death"));
+    const birthDate = person.display?.birthDate || birthFact?.date?.original;
+    const birthPlace = person.display?.birthPlace || birthFact?.place?.original;
+    const deathDate = person.display?.deathDate || deathFact?.date?.original;
+    const deathPlace = person.display?.deathPlace || deathFact?.place?.original;
+
+    const ahnenNumber = person.display?.ascendancyNumber
+      ? Number.parseInt(person.display.ascendancyNumber, 10)
+      : id === personId
+        ? 1
+        : 0;
 
     const missingData: Array<"birthDate" | "birthPlace" | "father" | "mother" | "sources"> = [];
-    if (!birthFact?.date?.original) {
+    if (!birthDate) {
       missingData.push("birthDate");
     }
-    if (!birthFact?.place?.original) {
+    if (!birthPlace) {
       missingData.push("birthPlace");
     }
     if (!person.sources || person.sources.length === 0) {
@@ -63,13 +75,16 @@ export async function getTreeAncestors(
 
     ancestors.push({
       id,
-      ahnenNumber: id === personId ? 1 : 0, // Assigned sequentially or via relationships
+      ahnenNumber,
       name: primaryName,
-      gender: person.gender?.type?.split("/").pop(),
-      birthDate: birthFact?.date?.original,
-      birthPlace: birthFact?.place?.original,
-      deathDate: deathFact?.date?.original,
-      deathPlace: deathFact?.place?.original,
+      gender: person.display?.gender || person.gender?.type?.split("/").pop(),
+      lifespan:
+        person.display?.lifespan ||
+        (birthDate || deathDate ? `${birthDate || "?"}–${deathDate || "?"}` : undefined),
+      birthDate,
+      birthPlace,
+      deathDate,
+      deathPlace,
     });
 
     if (missingData.length > 0) {

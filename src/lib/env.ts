@@ -10,7 +10,6 @@ const envSchema = z.object({
   FAMILYSEARCH_CLIENT_SECRET: z.string().optional(),
   FAMILYSEARCH_REDIRECT_URI: z.string().url().default("http://localhost:3000/api/auth/callback"),
   FAMILYSEARCH_SESSION_ID: z.string().optional(),
-  FAMILYSEARCH_USER_NAME: z.string().optional(),
 
   // Google Gemini Settings
   GEMINI_API_KEY: z.string().min(1, "Gemini API Key is required"),

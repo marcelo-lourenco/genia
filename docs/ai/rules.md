@@ -54,8 +54,12 @@
 
 ---
 
-## 5. Segurança e Gestão de Sessão
-* **Zero Hardcoding de Segredos:** Tokens, Client IDs e senhas devem ser lidos exclusivamente via `getEnv()` e mantidos em variáveis de ambiente (`.env`).
+## 5. Segurança, Privacidade e Proibição Absoluta de Hardcoding de Dados Pessoais (PII)
+* **Zero Hardcoding de Segredos e Credenciais:** Tokens (`access_token`, `refresh_token`), Client IDs, senhas e chaves de API nunca devem ser fixados no código-fonte. Devem residir exclusivamente no `.env` local (que é estritamente ignorado pelo `.gitignore`) e ser acessados via `getEnv()`.
+* **Proibição Absoluta de Dados Pessoais Fixos (PII):**
+  - É expressamente proibido fixar em arquivos de código (`.tsx`, `.ts`, `.json`, `.md`) nomes reais de usuários, credenciais, e-mails, usernames ou identificadores de árvores (Tree IDs, como `GYT8-36P`).
+  - Todo perfil de usuário e visualização de árvore genealógica (`/my-tree`, Header, modais) **deve ser 100% dinâmico**, extraído da sessão ativa via `/api/auth/profile` e da API do FamilySearch via `/api/mcp`.
+  - Quaisquer placeholders ou fallbacks de interface devem usar termos neutros e genéricos (ex: `"Usuário FamilySearch"`, `"@usuario"`, `"KWQS-BB1"`, `"LXYZ-123"`).
 * **Criptografia Simétrica de Tokens:** Tokens salvos em cookies ou storage devem utilizar `AES-256-GCM` com verificação de integridade.
 * **Resiliência e Rate-Limiting:** Toda chamada à API do FamilySearch deve implementar política de retry com *Exponential Backoff* tratando status `HTTP 429` e `HTTP 5xx`.
 
