@@ -151,3 +151,6 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
   - Acesso centralizado e exclusivo via item *"Personalizar UI"* no dropdown do Avatar no Header.
 - **Padronização de Diretrizes de IA (`docs/ai/rules.md` e `docs/ai/agents.md`):**
   - Regra obrigatória estabelecida: o agente de IA deve sempre entregar a mensagem de commit correspondente ao final de cada tarefa, estritamente em formato de texto puro sem comandos de terminal.
+  - Instituída a governança de atualização contínua: a cada implementação/melhoria a documentação viva deve ser sincronizada, e qualquer nova diretriz ou anti-pattern deve ser incorporada imediatamente à base de conhecimento dos agentes.
+- **Simplificação de Nomenclatura de Interface:**
+  - Padronização dos botões de autenticação do Header e do modal `LoginForm` para o rótulo direto *"Entrar"*, substituindo *"Entrar no GENIA"*.

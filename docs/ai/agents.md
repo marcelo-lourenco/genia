@@ -51,6 +51,10 @@ Ao desenvolver ou modificar componentes visuais, o agente deve seguir **obrigato
    - Deve ser **sempre texto puro** (proibido incluir comandos como `git add .` ou `git commit -m "..."`).
    - Seguir padrão Conventional Commits com título semântico e detalhamento em tópicos.
 
+6. **Atualização Contínua da Documentação e Base de Conhecimento:**
+   - A cada implementação, atualização, correção ou refatoração, o agente deve **obrigatoriamente atualizar a documentação** (`changelog.md`, `README.md`, `skills.md`, etc.).
+   - Sempre que surgirem novas diretrizes, restrições ("o que NÃO fazer"), boas práticas ou padrões de engenharia e segurança, o agente deve **atualizar imediatamente os arquivos de conhecimento de agentes** (`rules.md` e `agents.md`) para garantir o aprendizado contínuo do sistema.
+
 ---
 
 ## 4. Limites Éticos e Operacionais

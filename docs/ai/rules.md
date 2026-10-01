@@ -75,3 +75,13 @@
 * **Formato Estrito (Apenas Texto Puro):**
   - A mensagem de commit deve ser entregue **sempre como texto puro**, sem comandos git externos (proibido incluir `git add .` ou `git commit -m "..."`).
   - Padrão **Conventional Commits**: Título conciso indicando o tipo da alteração (`feat:`, `fix:`, `refactor:`, `style:`, `test:`, `docs:`), acompanhado de lista em tópicos detalhando com clareza o que foi modificado em cada módulo.
+
+---
+
+## 8. Atualização Contínua da Documentação e Base de Conhecimento do Agente
+* **Sincronização Obrigatória em Toda Entrega:**
+  - Sempre que for realizada qualquer implementação, atualização, correção, melhoria ou refatoração no sistema, a documentação viva (`docs/ai/changelog.md`, `README.md`, `docs/ai/skills.md`, etc.) **deve ser atualizada imediatamente** para refletir com precisão o estado real do projeto.
+  - Toda mudança funcional deve ser registrada no histórico do `changelog.md`.
+* **Evolução Contínua do Conhecimento dos Agentes de IA:**
+  - Sempre que forem definidas novas diretrizes, boas práticas, regras de **"o que NÃO fazer" (anti-patterns)**, decisões de arquitetura, padrões de engenharia, UI/UX ou segurança relevantes para o trabalho dos agentes de IA, a documentação técnica (`docs/ai/rules.md` e `docs/ai/agents.md`) **deve ser atualizada imediatamente**.
+  - O agente não deve apenas seguir a instrução pontualmente, mas sim registrar a diretriz na base de conhecimento para que todos os agentes subsequentes operem sob as mesmas regras.
