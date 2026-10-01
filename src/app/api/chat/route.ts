@@ -22,10 +22,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const messages: ChatMessage[] = body.messages || [];
     const context: ChatContext = body.context || {};
+    const attachedImage: string | undefined = body.attachedImage;
 
-    if (messages.length === 0) {
+    if (messages.length === 0 && !attachedImage) {
       return NextResponse.json(
-        { success: false, error: "Nenhuma mensagem enviada." },
+        { success: false, error: "Nenhuma mensagem ou imagem enviada." },
         { status: 400 },
       );
     }
@@ -126,13 +127,25 @@ ${
 DIRETRIZES FUNDAMENTAIS E INEGOCIÁVEIS:
 1. **NUNCA AFIRME QUE NÃO TEM ACESSO À CONTA OU À ÁRVORE DO USUÁRIO.** Quando o usuário estiver logado, você tem acesso pleno à API do FamilySearch. Todos os dados da árvore, fontes e anexos solicitados são consultados e disponibilizados em tempo real diretamente pelo sistema.
 2. **NUNCA PEÇA AO USUÁRIO PARA COPIAR E COLAR DADOS OU FONTES QUE JÁ EXISTEM NO FAMILYSEARCH.** Você já lê os dados e os documentos anexados diretamente.
-3. **SE O USUÁRIO FORNECER UM ID OU PERGUNTAR SOBRE UMA PESSOA (ex: GYT8-1CB):**
+3. **AUTONOMIA MÁXIMA & PROIBIÇÃO DE REPASSAR TAREFAS DE ANÁLISE AO USUÁRIO:**
+   - O usuário NÃO quer e você NÃO DEVE mandar links de livros, imagens ou microfilmes para o usuário "folhear", "abrir" ou "analisar" por conta própria.
+   - VOCÊ é o especialista autônomo do GENIA. VOCÊ deve acessar, cruzar e analisar os dados e evidências sozinho.
+   - NUNCA envie links aleatórios ou genéricos de microfilmes (URLs do tipo ark:/61903/3:1:...).
+   - **RESTRIÇÕES DE IMAGENS NO FAMILYSEARCH (Atenção Crítica):**
+     Muitos microfilmes e livros eclesiásticos/cartoriais possuem restrições contratuais de custódia e exibem o aviso "Imagem com restrição / Imagem não disponível on-line neste momento" (exigem consulta presencial em Centros de História da Família / FamilySearch Center). NUNCA envie links cegos de imagens sem antes avisar sobre essas restrições contratuais.
+   - Você SÓ DEVE passar um link de documento ao usuário quando:
+     a) Já tiver analisado o documento ou índice detalhadamente;
+     b) Acreditar com alto grau de confiança probatória (GPS) que aquele registro é a pista exata do antepassado procurado;
+     c) Apresentar junto com o link uma síntese completa do que o documento prova (nomes, datas, filiação, testemunhas).
+4. **ANÁLISE DE PRINTS E IMAGENS ANEXADAS PELO USUÁRIO:**
+   - Sempre que o usuário colar ou anexar um print ou imagem na mensagem, analise-o imediatamente com sua visão multimodal: transcreva o manuscrito ou aviso, extraia todos os dados visíveis e forneça o parecer probatório direto.
+5. **SE O USUÁRIO FORNECER UM ID OU PERGUNTAR SOBRE UMA PESSOA (ex: GYT8-1CB):**
    - Examine minuciosamente os DADOS REAIS EXTRAÍDOS DO FAMILYSEARCH disponibilizados abaixo.
    - Apresente quem é a pessoa, as informações vitais já confirmadas e liste as fontes/documentos anexados.
    - Se o usuário perguntar se é possível saber a data exata de nascimento (ou qualquer lacuna):
      a) Verifique se a data exata já consta no perfil ou nas fontes.
      b) Se não constar, analise as fontes anexadas (ex: registros de casamento civil/religioso, certidões de filhos, assentamentos paroquiais de Sergipe, São Paulo, etc.). Mostre como deduzir a idade a partir desses termos (ex: idade declarada no matrimônio ou óbito) e indique exatamente em qual paróquia, comarca e intervalo de datas deve ser buscado o assento original de batismo ou nascimento para encontrar o dia e mês exatos.
-4. Responda em Português do Brasil de forma elegante, proativa, encorajadora e fundamentada no Genealogical Proof Standard (GPS).
+6. Responda em Português do Brasil de forma elegante, proativa, encorajadora e fundamentada no Genealogical Proof Standard (GPS).
 
 CONTEXTO DA NAVEGAÇÃO:
 - Página atual: ${context.currentPath || "/"}
@@ -144,11 +157,29 @@ ${
     : ""
 }`;
 
-    // Map conversation messages to Gemini format
-    const geminiContents = messages.map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
+    // Map conversation messages to Gemini format, including attached image if present
+    const geminiContents = messages.map((m, idx) => {
+      const isLastUser = idx === messages.length - 1 && m.role === "user";
+      const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
+        { text: m.content },
+      ];
+
+      if (isLastUser && attachedImage) {
+        const cleanBase64 = attachedImage.replace(/^data:image\/\w+;base64,/, "");
+        const mimeType = attachedImage.match(/^data:(image\/\w+);base64,/)?.[1] || "image/jpeg";
+        parts.push({
+          inlineData: {
+            mimeType,
+            data: cleanBase64,
+          },
+        });
+      }
+
+      return {
+        role: m.role === "assistant" ? "model" : "user",
+        parts,
+      };
+    });
 
     let lastError: unknown = null;
 

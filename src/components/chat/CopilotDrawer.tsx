@@ -4,8 +4,10 @@ import {
   Bot,
   Check,
   Copy,
+  ImageIcon,
   Lightbulb,
   Loader2,
+  Paperclip,
   Send,
   Sparkles,
   Trash2,
@@ -19,6 +21,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: string;
   timestamp: string;
 }
 
@@ -36,10 +39,15 @@ export function CopilotDrawer() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [sendOnEnter, setSendOnEnter] = useState<boolean>(false);
   const [authProfile, setAuthProfile] = useState<{
     authenticated: boolean;
     user?: { name: string; username: string; personId?: string };
   } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -52,7 +60,7 @@ export function CopilotDrawer() {
             {
               id: "welcome-auth",
               role: "assistant",
-              content: `Olá, **${data.user.name || "Pesquisador"}**! Sou o **GENIA Copilot**, conectado à sua conta do **FamilySearch**.\n\nTenho acesso direto e em tempo real à sua árvore, registros e fontes anexadas. Você pode me passar qualquer identificador (como \`${data.user.personId || "GYT8-36P"}\` ou de seus antepassados), pedir para eu analisar certidões ou formular planos de investigação probatória conforme o **GPS**.\n\nQual antepassado gostaria que eu examinasse agora?`,
+              content: `Olá, **${data.user.name || "Pesquisador"}**! Sou o **GENIA Copilot**, conectado diretamente à sua conta do **FamilySearch**.\n\nTenho acesso total à sua árvore, fontes e registros. Analiso documentos e livros arquivísticos sozinho e sem repassar trabalho para você folhear. Você pode me passar qualquer ID (como \`${data.user.personId || "GYT8-36P"}\` ou de seus ancestrais) ou colar prints/documentos aqui para análise visual direta.\n\nQual caso gostaria que eu examinasse agora?`,
               timestamp: "Agora",
             },
           ]);
@@ -69,12 +77,10 @@ export function CopilotDrawer() {
       id: "welcome-1",
       role: "assistant",
       content:
-        "Olá! Sou o **GENIA Copilot**, seu assistente genealógico com inteligência artificial conectado à sua conta do **FamilySearch**.\n\nTenho acesso direto à sua árvore, fontes anexadas e acervos históricos. Você pode me enviar qualquer ID de antepassado (como `GYT8-1CB`), pedir análises de parentesco ou traçar rotas probatórias segundo o **Genealogical Proof Standard (GPS)**.\n\nComo posso ajudar na sua pesquisa hoje?",
+        "Olá! Sou o **GENIA Copilot**, seu assistente genealógico com inteligência artificial conectado à sua conta do **FamilySearch**.\n\nTenho acesso direto à sua árvore, fontes anexadas e acervos históricos. Eu analiso os documentos e cruzo evidências sozinho. Você pode me enviar qualquer ID de antepassado (como `GYT8-1CB`), colar prints de telas/certidões com **Ctrl+V** ou pedir análises probatórias segundo o **GPS**.\n\nComo posso ajudar na sua pesquisa hoje?",
       timestamp: "Agora",
     },
   ]);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll on new message
   // biome-ignore lint/correctness/useExhaustiveDependencies: auto-scroll on change
@@ -97,20 +103,59 @@ export function CopilotDrawer() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Handle clipboard image paste (Ctrl+V)
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            setAttachedImage(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+          e.preventDefault();
+          break;
+        }
+      }
+    }
+  };
+
+  // Handle file select through attachment button
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAttachedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || input.trim();
-    if (!textToSend || isLoading) return;
+    if ((!textToSend && !attachedImage) || isLoading) return;
+
+    const currentAttachedImage = attachedImage;
 
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
       role: "user",
-      content: textToSend,
+      content: textToSend || "(Print/Imagem anexada para análise visual)",
+      image: currentAttachedImage || undefined,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
+    setAttachedImage(null);
     setIsLoading(true);
 
     try {
@@ -119,6 +164,7 @@ export function CopilotDrawer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+          attachedImage: currentAttachedImage || undefined,
           context: {
             currentPath: pathname,
             personId: authProfile?.user?.personId,
@@ -240,7 +286,7 @@ export function CopilotDrawer() {
       {isOpen && (
         <aside
           aria-label="GENIA Copilot Chat"
-          className="fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] bg-background border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+          className="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] bg-background border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
         >
           {/* Top Bar */}
           <div className="p-4 border-b border-border flex items-center justify-between bg-card/60 backdrop-blur-md">
@@ -314,6 +360,15 @@ export function CopilotDrawer() {
                       : "bg-muted/50 border border-border text-foreground rounded-tl-xs"
                   }`}
                 >
+                  {/* Attached image thumbnail in user message */}
+                  {msg.image && (
+                    <div className="mb-2 rounded-lg overflow-hidden border border-white/20 max-w-[260px] bg-black/30">
+                      {/* biome-ignore lint/performance/noImgElement: user chat screenshot */}
+                      {/* biome-ignore lint/a11y/useAltText: user chat screenshot */}
+                      <img src={msg.image} className="max-h-48 object-contain w-full" />
+                    </div>
+                  )}
+
                   {renderFormattedContent(msg.content)}
 
                   <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground/80 pt-1 border-t border-border/30">
@@ -356,7 +411,7 @@ export function CopilotDrawer() {
                 </div>
                 <div className="flex items-center gap-2 bg-muted/40 border border-border px-3 py-2 rounded-xl">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                  <span>GENIA Copilot analisando evidências e acervos...</span>
+                  <span>GENIA Copilot examinando registros e imagens...</span>
                 </div>
               </div>
             )}
@@ -371,7 +426,7 @@ export function CopilotDrawer() {
               <span>Sugestões rápidas de pesquisa:</span>
             </div>
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-none">
-              {QUICK_SUGGESTIONS.map((sug, _idx) => (
+              {QUICK_SUGGESTIONS.map((sug) => (
                 <button
                   key={sug}
                   type="button"
@@ -385,26 +440,120 @@ export function CopilotDrawer() {
             </div>
           </div>
 
-          {/* Input Box */}
+          {/* Attached Image Preview Banner */}
+          {attachedImage && (
+            <div className="px-3 py-2 border-t border-border bg-muted/50 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {/* biome-ignore lint/performance/noImgElement: user upload preview */}
+                {/* biome-ignore lint/a11y/useAltText: preview */}
+                <img
+                  src={attachedImage}
+                  className="w-10 h-10 object-cover rounded-lg border border-border shadow-xs shrink-0 bg-background"
+                />
+                <div className="min-w-0 text-2xs">
+                  <span className="font-semibold text-foreground flex items-center gap-1 truncate">
+                    <ImageIcon className="w-3 h-3 text-primary" /> Print / Imagem Anexada
+                  </span>
+                  <span className="text-muted-foreground text-[10px] block truncate">
+                    O Copilot analisará o conteúdo visual com IA
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setAttachedImage(null)}
+                title="Remover anexo"
+                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Input Box with Textarea, Paste support, Attachment Icon & Enter Config */}
           <div className="p-3 border-t border-border bg-card">
+            {/* Input Action Controls (Attachment, Paste Hint & Enter Config) */}
+            <div className="flex items-center justify-between mb-2 px-1 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Anexar print ou imagem de documento"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  <Paperclip className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[10px] font-medium">Anexar Print</span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <span className="text-muted-foreground/30">•</span>
+                <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
+                  Cole prints com Ctrl+V
+                </span>
+              </div>
+
+              {/* Enter sending configuration */}
+              <label
+                className="flex items-center gap-1.5 cursor-pointer text-[10px] select-none text-muted-foreground hover:text-foreground transition-colors"
+                title={
+                  sendOnEnter
+                    ? "Enter envia a mensagem. Use Shift+Enter para nova linha."
+                    : "Enter quebra linha. Pressione Ctrl+Enter ou clique no botão para enviar."
+                }
+              >
+                <input
+                  type="checkbox"
+                  checked={sendOnEnter}
+                  onChange={(e) => setSendOnEnter(e.target.checked)}
+                  className="rounded border-border accent-primary cursor-pointer w-3 h-3"
+                />
+                <span>Enviar com Enter</span>
+              </label>
+            </div>
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="flex items-center gap-2"
+              className="flex items-end gap-2"
             >
-              <input
+              <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Pergunte sobre registros, cartórios ou lacunas..."
+                onPaste={handlePaste}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (sendOnEnter && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    } else if (!sendOnEnter && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }
+                }}
+                rows={2}
+                placeholder={
+                  sendOnEnter
+                    ? "Escreva sua dúvida ou cole prints com Ctrl+V... (Enter envia, Shift+Enter pula linha)"
+                    : "Escreva sua dúvida ou cole prints com Ctrl+V... (Enter pula linha, Ctrl+Enter envia)"
+                }
                 disabled={isLoading}
-                className="flex-1 px-3 py-2.5 rounded-xl bg-background border border-input text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className="flex-1 px-3 py-2 rounded-xl bg-background border border-input text-foreground text-xs resize-none placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary leading-relaxed"
               />
+
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
-                className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors shadow-sm cursor-pointer"
+                disabled={(!input.trim() && !attachedImage) || isLoading}
+                className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors shadow-sm cursor-pointer shrink-0"
+                title={sendOnEnter ? "Enviar mensagem (Enter)" : "Enviar mensagem (Ctrl+Enter)"}
               >
                 <Send className="w-4 h-4" />
               </button>

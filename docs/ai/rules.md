@@ -99,3 +99,24 @@
   - Sempre que o usuário mencionar um identificador FamilySearch (padrão `XXXX-XXX`, como `GYT8-1CB`), o backend deve consultar em tempo real os detalhes da pessoa (`getPersonDetails`) e as fontes/documentos anexados (`getPersonSources`).
   - O Copiloto deve receber esses dados reais e analisar prontamente os fatos, documentos e pistas históricas para responder à dúvida do usuário de maneira proativa e fundamentada no GPS.
 
+---
+
+## 10. Autonomia na Análise Documental e Tratamento de Restrições de Microfilmes (ARK / DGS)
+* **Autonomia Obrigatória (Não Repassar Tarefas de Análise ao Usuário):**
+  - O agente de IA **nunca** deve enviar links de livros de microfilmes crus pedindo para o usuário "folhear", "abrir" ou "analisar" por conta própria.
+  - O próprio agente deve consultar, cruzar e analisar os registros e índices internamente.
+  - O agente só deve enviar um link direto quando já tiver inspecionado o documento e tiver **alta confiança probatória (GPS)** de que aquele é o assento correto do antepassado, apresentando imediatamente uma síntese de tudo o que o termo comprova.
+* **Alerta sobre Restrições Contratuais de Imagens:**
+  - Muitos microfilmes da Igreja Católica ou de cartórios do FamilySearch possuem restrições contratuais de custódia (*"Imagem com restrição / Imagem não disponível on-line neste momento"*).
+  - É expressamente proibido enviar links cegos para imagens com restrição sem alertar previamente que o acesso exige consulta presencial em um Centro de História da Família (FamilySearch Center) ou solicitação da certidão física no cartório/paróquia.
+
+---
+
+## 11. Padrões de Usabilidade e Entrada de Mensagens no Chat do Copiloto
+* **Suporte a Prints e Imagens:**
+  - O chat deve permitir colagem direta de prints da área de transferência com `Ctrl+V` e anexo de arquivos de imagem via botão dedicado (`Paperclip`).
+  - Imagens anexadas devem ser processadas com visão computacional multimodal pelo backend `/api/chat`.
+* **Configuração de Envio (Enter vs Quebra de Linha):**
+  - A interface deve oferecer controle explícito (`checkbox` / toggle) para que o usuário escolha se `Enter` envia a mensagem ou apenas quebra a linha (com `Ctrl+Enter` como atalho de envio alternativo).
+
+

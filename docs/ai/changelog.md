@@ -202,8 +202,20 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
     4. Síntese probatória GPS com cálculo de confiança.
     5. Gravação automática e persistente da hipótese no Diário de Pesquisa (`/research-log`).
   - Ações diretas no modal para abrir a entrada no Diário GPS ou realizar busca manual.
+- **Autonomia Estrita na Análise Documental & Tratamento de Restrições DGS:**
+  - Diretriz obrigatória no Copiloto: o agente é terminantemente proibido de enviar links de microfilmes para o usuário folhear ou analisar por conta própria. O agente analisa e cruza os dados internamente e só envia links quando o documento estiver validado com alta confiança probatória (GPS).
+  - Tratamento preventivo contra imagens com restrição contratual no FamilySearch (*"Imagem não disponível on-line"*), alertando sobre exigências de acesso presencial em Centros de História da Família antes de sugerir fontes inacessíveis.
+- **Suporte a Prints e Imagens no Chat (`CopilotDrawer.tsx` & `/api/chat`):**
+  - Implementada colagem direta de prints e screenshots da área de transferência com `Ctrl + V`.
+  - Adicionado botão de anexo de arquivo com ícone de clipe (`Paperclip`) para seleção de imagens do computador.
+  - Card de pré-visualização de imagem anexada com miniatura e botão para remoção.
+  - Processamento visual multimodal via Google Gemini Vision no backend `/api/chat`, transcrevendo e analisando prints enviados diretamente pelo usuário.
+- **Configuração de Envio de Mensagem (Enter vs Quebra de Linha):**
+  - Campo de mensagem reformulado com `<textarea>` de altura flexível.
+  - Controle interativo *"Enviar com Enter"*: quando desmarcado, a tecla `Enter` insere quebras de linha livremente (evitando envios acidentais), e o envio ocorre via clique no botão ou atalho `Ctrl + Enter` (ou `Cmd + Enter`). Quando marcado, `Enter` envia e `Shift + Enter` quebra a linha.
 - **Conformidade de Qualidade & Testes:**
   - 100% de conformidade com o BiomeJS (`0 erros` em 74 arquivos).
   - 26/26 testes unitários passando (`pnpm test:unit`).
   - Validação ponta a ponta com subagente de browser no ambiente ativo.
+
 
