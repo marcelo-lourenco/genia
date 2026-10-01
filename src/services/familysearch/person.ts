@@ -97,7 +97,78 @@ export async function getPersonSources(personId: string): Promise<PersonSourceDe
       notes: s.notes?.map((n) => n.text || "").join("\n"),
     }));
   } catch (error) {
-    console.warn(`Could not fetch sources for person ${personId}:`, error);
+    console.error(`Failed to fetch sources for person ${personId}:`, error);
     return [];
   }
+}
+
+export interface PersonRelationships {
+  spouses: Array<{ id: string; name: string; gender?: string }>;
+  parents: Array<{ id: string; name: string; gender?: string }>;
+  children: Array<{ id: string; name: string; gender?: string }>;
+}
+
+/**
+ * Retrieves spouses, parents and children of a person from FamilySearch Tree
+ */
+export async function getPersonRelationships(personId: string): Promise<PersonRelationships> {
+  const result: PersonRelationships = {
+    spouses: [],
+    parents: [],
+    children: [],
+  };
+
+  try {
+    const [spousesData, parentsData, childrenData] = await Promise.all([
+      familySearchFetch<{
+        persons?: Array<{
+          id: string;
+          names?: Array<{ nameForms?: Array<{ fullText?: string }> }>;
+          gender?: { type?: string };
+        }>;
+      }>(`/platform/tree/persons/${personId}/spouses`).catch(() => ({ persons: [] })),
+      familySearchFetch<{
+        persons?: Array<{
+          id: string;
+          names?: Array<{ nameForms?: Array<{ fullText?: string }> }>;
+          gender?: { type?: string };
+        }>;
+      }>(`/platform/tree/persons/${personId}/parents`).catch(() => ({ persons: [] })),
+      familySearchFetch<{
+        persons?: Array<{
+          id: string;
+          names?: Array<{ nameForms?: Array<{ fullText?: string }> }>;
+          gender?: { type?: string };
+        }>;
+      }>(`/platform/tree/persons/${personId}/children`).catch(() => ({ persons: [] })),
+    ]);
+
+    if (spousesData?.persons) {
+      result.spouses = spousesData.persons.map((p) => ({
+        id: p.id,
+        name: p.names?.[0]?.nameForms?.[0]?.fullText || "Cônjuge Desconhecido",
+        gender: p.gender?.type?.split("/").pop(),
+      }));
+    }
+
+    if (parentsData?.persons) {
+      result.parents = parentsData.persons.map((p) => ({
+        id: p.id,
+        name: p.names?.[0]?.nameForms?.[0]?.fullText || "Genitor Desconhecido",
+        gender: p.gender?.type?.split("/").pop(),
+      }));
+    }
+
+    if (childrenData?.persons) {
+      result.children = childrenData.persons.map((p) => ({
+        id: p.id,
+        name: p.names?.[0]?.nameForms?.[0]?.fullText || "Filho(a) Desconhecido(a)",
+        gender: p.gender?.type?.split("/").pop(),
+      }));
+    }
+  } catch (err) {
+    console.warn(`Could not fetch relationships for person ${personId}:`, err);
+  }
+
+  return result;
 }

@@ -33,11 +33,35 @@ const QUICK_SUGGESTIONS = [
   "Como achar a certidão de desembarque de imigrantes?",
 ];
 
+const LOADING_STATUS_STEPS = [
+  {
+    title: "Conectado ao FamilySearch",
+    detail: "Identificando perfil e consultando registros da árvore genealógica...",
+  },
+  {
+    title: "Mapeando parentesco",
+    detail: "Verificando cônjuge, filiação oficial e filhos vinculados...",
+  },
+  {
+    title: "Examinando fontes anexadas",
+    detail: "Consultando certidões civis de óbito, casamento e cemitério...",
+  },
+  {
+    title: "Inspecionando imagens de acervos",
+    detail: "Verificando disponibilidade de registros e restrições de custódia...",
+  },
+  {
+    title: "Aplicando Padrão de Prova (GPS)",
+    detail: "Cruzando datas, idades declaradas e estruturando laudo genealógico...",
+  },
+];
+
 export function CopilotDrawer() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [sendOnEnter, setSendOnEnter] = useState<boolean>(false);
@@ -102,6 +126,20 @@ export function CopilotDrawer() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Step progression during loading for real-time user feedback
+  useEffect(() => {
+    if (!isLoading) {
+      setLoadingStep(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setLoadingStep((prev) => (prev < LOADING_STATUS_STEPS.length - 1 ? prev + 1 : prev));
+    }, 2800);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   // Handle clipboard image paste (Ctrl+V)
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -405,13 +443,42 @@ export function CopilotDrawer() {
             ))}
 
             {isLoading && (
-              <div className="flex gap-3 justify-start items-center text-muted-foreground text-xs p-2">
-                <div className="w-7 h-7 rounded-full bg-purple-600/10 border border-purple-600/20 flex items-center justify-center text-purple-600 dark:text-purple-400 animate-pulse">
+              <div className="flex gap-3 justify-start items-start text-xs p-1">
+                <div className="w-7 h-7 rounded-full bg-purple-600/10 border border-purple-600/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 mt-1 animate-pulse">
                   <Sparkles className="w-3.5 h-3.5" />
                 </div>
-                <div className="flex items-center gap-2 bg-muted/40 border border-border px-3 py-2 rounded-xl">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                  <span>GENIA Copilot examinando registros e imagens...</span>
+                <div className="flex-1 bg-muted/40 border border-border/80 rounded-2xl p-3 shadow-xs space-y-2.5 max-w-[90%]">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center gap-1.5 font-medium text-foreground">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-500" />
+                      <span>{LOADING_STATUS_STEPS[loadingStep].title}</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      Etapa {loadingStep + 1}/{LOADING_STATUS_STEPS.length}
+                    </span>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-purple-600 h-full transition-all duration-500 ease-out"
+                      style={{
+                        width: `${((loadingStep + 1) / LOADING_STATUS_STEPS.length) * 100}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {LOADING_STATUS_STEPS[loadingStep].detail}
+                  </p>
+
+                  <div className="pt-1.5 border-t border-border/40 flex items-center justify-between text-[9px] text-muted-foreground/80">
+                    <span className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-ping" />
+                      FamilySearch API: Conexão ativa
+                    </span>
+                    <span>Análise contínua em tempo real</span>
+                  </div>
                 </div>
               </div>
             )}

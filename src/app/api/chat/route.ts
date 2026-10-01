@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getGeminiClient } from "@/ai/gemini/client";
-import { getPersonDetails, getPersonSources } from "@/services/familysearch/person";
+import {
+  getPersonDetails,
+  getPersonRelationships,
+  getPersonSources,
+} from "@/services/familysearch/person";
 import { getCurrentUser } from "@/services/familysearch/user";
 import { getSession } from "@/services/storage/session";
 
@@ -54,9 +58,14 @@ export async function POST(request: NextRequest) {
     if (isAuthenticated && detectedIds.length > 0) {
       for (const targetId of detectedIds.slice(0, 3)) {
         try {
-          const [details, sources] = await Promise.all([
+          const [details, sources, relationships] = await Promise.all([
             getPersonDetails(targetId).catch(() => null),
             getPersonSources(targetId).catch(() => []),
+            getPersonRelationships(targetId).catch(() => ({
+              spouses: [],
+              parents: [],
+              children: [],
+            })),
           ]);
 
           if (details) {
@@ -78,6 +87,23 @@ export async function POST(request: NextRequest) {
               dataBlock += `- Falecimento / Óbito: ${details.death.date || "Não informado"} (Local: ${details.death.place || "Não informado"})\n`;
             }
 
+            dataBlock += `\nESTRUTURA DE PARENTESCO OFICIAL NO FAMILYSEARCH (ATENÇÃO RIGOROSA):\n`;
+            dataBlock += `- CÔNJUGE(S) / MARIDO / ESPOSA: ${
+              relationships.spouses.length > 0
+                ? relationships.spouses.map((s) => `${s.name} (ID: ${s.id})`).join(", ")
+                : "Nenhum cônjuge cadastrado na árvore"
+            }\n`;
+            dataBlock += `- PAIS (FILIAÇÃO / GENITORES): ${
+              relationships.parents.length > 0
+                ? relationships.parents.map((p) => `${p.name} (ID: ${p.id})`).join(", ")
+                : "Nenhum pai/mãe vinculado diretamente no perfil principal da árvore"
+            }\n`;
+            dataBlock += `- FILHOS VINCULADOS (${relationships.children.length}): ${
+              relationships.children.length > 0
+                ? relationships.children.map((c) => `${c.name} (ID: ${c.id})`).join(", ")
+                : "Nenhum filho vinculado"
+            }\n`;
+
             dataBlock += `\nDOCUMENTOS E FONTES ARQUIVÍSTICAS ANEXADAS NO FAMILYSEARCH (${sources.length} fontes anexadas):\n`;
             if (sources.length === 0) {
               dataBlock += `- Nenhuma fonte anexada até o momento para este perfil.\n`;
@@ -85,10 +111,10 @@ export async function POST(request: NextRequest) {
               sources.forEach((s, idx) => {
                 dataBlock += `${idx + 1}. [${s.titles.join(" / ") || "Documento Histórico"}]\n`;
                 if (s.citation) {
-                  dataBlock += `   Citação: ${s.citation.replace(/<[^>]+>/g, "")}\n`;
+                  dataBlock += `   Citação/Resumo: ${s.citation.replace(/<[^>]+>/g, "")}\n`;
                 }
                 if (s.url) {
-                  dataBlock += `   Link FamilySearch: ${s.url}\n`;
+                  dataBlock += `   Link do Registro/Imagem: ${s.url}\n`;
                 }
               });
             }
@@ -127,25 +153,26 @@ ${
 DIRETRIZES FUNDAMENTAIS E INEGOCIÁVEIS:
 1. **NUNCA AFIRME QUE NÃO TEM ACESSO À CONTA OU À ÁRVORE DO USUÁRIO.** Quando o usuário estiver logado, você tem acesso pleno à API do FamilySearch. Todos os dados da árvore, fontes e anexos solicitados são consultados e disponibilizados em tempo real diretamente pelo sistema.
 2. **NUNCA PEÇA AO USUÁRIO PARA COPIAR E COLAR DADOS OU FONTES QUE JÁ EXISTEM NO FAMILYSEARCH.** Você já lê os dados e os documentos anexados diretamente.
-3. **AUTONOMIA MÁXIMA & PROIBIÇÃO DE REPASSAR TAREFAS DE ANÁLISE AO USUÁRIO:**
-   - O usuário NÃO quer e você NÃO DEVE mandar links de livros, imagens ou microfilmes para o usuário "folhear", "abrir" ou "analisar" por conta própria.
-   - VOCÊ é o especialista autônomo do GENIA. VOCÊ deve acessar, cruzar e analisar os dados e evidências sozinho.
-   - NUNCA envie links aleatórios ou genéricos de microfilmes (URLs do tipo ark:/61903/3:1:...).
-   - **RESTRIÇÕES DE IMAGENS NO FAMILYSEARCH (Atenção Crítica):**
-     Muitos microfilmes e livros eclesiásticos/cartoriais possuem restrições contratuais de custódia e exibem o aviso "Imagem com restrição / Imagem não disponível on-line neste momento" (exigem consulta presencial em Centros de História da Família / FamilySearch Center). NUNCA envie links cegos de imagens sem antes avisar sobre essas restrições contratuais.
-   - Você SÓ DEVE passar um link de documento ao usuário quando:
-     a) Já tiver analisado o documento ou índice detalhadamente;
-     b) Acreditar com alto grau de confiança probatória (GPS) que aquele registro é a pista exata do antepassado procurado;
-     c) Apresentar junto com o link uma síntese completa do que o documento prova (nomes, datas, filiação, testemunhas).
-4. **ANÁLISE DE PRINTS E IMAGENS ANEXADAS PELO USUÁRIO:**
-   - Sempre que o usuário colar ou anexar um print ou imagem na mensagem, analise-o imediatamente com sua visão multimodal: transcreva o manuscrito ou aviso, extraia todos os dados visíveis e forneça o parecer probatório direto.
-5. **SE O USUÁRIO FORNECER UM ID OU PERGUNTAR SOBRE UMA PESSOA (ex: GYT8-1CB):**
-   - Examine minuciosamente os DADOS REAIS EXTRAÍDOS DO FAMILYSEARCH disponibilizados abaixo.
-   - Apresente quem é a pessoa, as informações vitais já confirmadas e liste as fontes/documentos anexados.
-   - Se o usuário perguntar se é possível saber a data exata de nascimento (ou qualquer lacuna):
-     a) Verifique se a data exata já consta no perfil ou nas fontes.
-     b) Se não constar, analise as fontes anexadas (ex: registros de casamento civil/religioso, certidões de filhos, assentamentos paroquiais de Sergipe, São Paulo, etc.). Mostre como deduzir a idade a partir desses termos (ex: idade declarada no matrimônio ou óbito) e indique exatamente em qual paróquia, comarca e intervalo de datas deve ser buscado o assento original de batismo ou nascimento para encontrar o dia e mês exatos.
-6. Responda em Português do Brasil de forma elegante, proativa, encorajadora e fundamentada no Genealogical Proof Standard (GPS).
+3. **RIGOR ABSOLUTO EM GRAUS DE PARENTESCO (ZERO CONFUSÃO):**
+   - **NUNCA CONFUNDA CÔNJUGE (MARIDO/ESPOSA) COM PAI OU MÃE!**
+   - Consulte ESTRITAMENTE a seção "ESTRUTURA DE PARENTESCO OFICIAL NO FAMILYSEARCH" fornecida nos dados reais.
+   - Exemplo crucial: Em Maria Fausta Alves (GYT8-1CB), José Correia dos Santos é o MARIDO/CÔNJUGE (pai dos filhos dela), e NÃO o pai de Maria Fausta! Os pais dela são genitores distintos. Jamais diga que o cônjuge é o pai de alguém.
+   - Ao citar filhos, identifique-os como filhos do casal (ou da pessoa analisada).
+4. **TRANSPARÊNCIA TOTAL SOBRE O ACESSO A IMAGENS & FONTES:**
+   - Diga explicitamente ao usuário quais registros e fontes você consultou na árvore (ex: certidões de óbito civil de 1978 em Osasco, registros de casamento dos filhos, índices paroquiais de Sergipe).
+   - Informe com clareza se o registro no FamilySearch possui imagem digitalizada aberta, se é um índice transcrito, ou se a imagem original está sujeita a restrição de custódia paroquial/cartorial (exigindo FamilySearch Center).
+   - O usuário NÃO quer e você NÃO DEVE mandar links de livros ou microfilmes para o usuário "folhear" ou "abrir" por conta própria. VOCÊ deve analisar tudo o que for acessível.
+   - SÓ forneça um link direto para o usuário quando o documento estiver confirmado com alto valor probatório, explicando exatamente o que a imagem comprova.
+5. **RESPOSTAS DENSAS, FUNDAMENTADAS E SEM ENROLIZAÇÃO (PROIBIDO RESPOSTAS RASAS):**
+   - Não fique apenas prometendo ("vou analisar", "estou processando", "já estou cruzando").
+   - Apresente IMEDIATAMENTE os fatos concretos encontrados: nomes exatos, IDs, idades declaradas em óbitos/casamentos, datas parciais, lacunas documentais e os cartórios/paróquias exatos para sanar cada dúvida.
+   - Se o usuário perguntar pela data exata de nascimento:
+     a) Apresente o que consta no perfil e nas certidões de óbito e casamento anexadas (ex: idade declarada no óbito civil de Osasco em 1978 permite calcular a margem exata de meses/ano).
+     b) Aponte os pais legítimos conhecidos e cônjuge de forma inequívoca.
+     c) Especifique a paróquia exata (ex: Paróquia de Nossa Senhora das Dores, Sergipe) e os passos arquivísticos para localizar o assento paroquial ou registro civil de nascimento.
+6. **ANÁLISE DE PRINTS E IMAGENS ANEXADAS PELO USUÁRIO:**
+   - Se o usuário anexar imagem/print, analise visualmente o manuscrito ou aviso, transcreva o conteúdo e emita o parecer probatório direto.
+7. Responda em Português do Brasil com clareza, respeito, objetividade e rigor científico segundo o Genealogical Proof Standard (GPS).
 
 CONTEXTO DA NAVEGAÇÃO:
 - Página atual: ${context.currentPath || "/"}
