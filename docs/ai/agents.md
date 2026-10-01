@@ -43,7 +43,7 @@ Ao desenvolver ou modificar componentes visuais, o agente deve seguir **obrigato
    - Não renderizar cards flutuantes de status de conexão poluindo a página inicial; toda a informação de sessão deve residir no Header e no menu Dropdown do perfil.
 
 4. **Fluxo de Autenticação:**
-   - O botão "Entrar no GENIA" **NUNCA** deve redirecionar para páginas avulsas (como `/search`). Ele deve abrir o modal de diálogo shadcn com o formulário padrão (`LoginForm`).
+   - O botão "Entrar" **NUNCA** deve redirecionar para páginas avulsas (como `/search`). Ele deve abrir o modal de diálogo shadcn com o formulário padrão (`LoginForm`).
    - Ao autenticar, deve atualizar o estado do usuário, fechar o modal e refletir imediatamente o avatar no cabeçalho.
 
 5. **Mensagens de Commit Obrigatórias:**

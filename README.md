@@ -16,27 +16,35 @@ A plataforma opera com base nos 5 critérios fundamentais do **Genealogical Proo
 
 ## 🌟 Funcionalidades Principais
 
-1. **Busca Ativa & Paleografia Multimodal (`/search`):**
-   - Pesquisa avançada na base indexada do FamilySearch com algoritmo fonético (Soundex / Levenshtein).
-   - Decifração paleográfica via Gemini Vision de fólios paroquiais manuscritos em alta resolução (Russo Cirílico arcaico do Séc. XIX/XX, Romeno e Latim).
-   - Caso de demonstração pré-configurado (*Caso Bessarábia - Colosovschi 1909*).
+1. **Pesquisa Universal & Paleografia Multimodal (`/search`):**
+   - Estruturação em 6 modalidades alinhadas ao FamilySearch: *Registros Históricos*, *Texto Completo (IA)*, *Imagens & DGS*, *Árvore Familiar*, *Livros & Genealogias* e *Paleografia Vision*.
+   - Formulário avançado com dezenas de campos colapsáveis (Identificação, Nascimentos, Batismos, Casamentos, Óbitos, Pais, Cônjuge, Parâmetros DGS/Filme e Idioma).
+   - Suporte universal a idiomas no decifrador multimodal Gemini (Português, Italiano, Espanhol, Latim, Alemão, Russo Cirílico, Romeno, Francês, Polonês, Hebraico e Auto-detecção).
 
 2. **Minha Árvore Genealógica Pedigree (`/my-tree`):**
    - Gráfico interativo nos padrões oficiais do FamilySearch cobrindo 3 a 4 gerações (Raiz, Cônjuge, Pais e 4 Avós).
    - Exibição de Tree IDs, datas vitais, marcadores de gênero e links diretos para o portal oficial.
 
-3. **Auditoria & Detecção de Lacunas (`/audit`):**
-   - Varredura algorítmica da árvore genealógica identificando buracos documentais (falta de data de nascimento, filiação ou fontes).
-   - Cartões de alertas com ação recomendada e botão *"Investigar com o Agente"*.
+3. **Auditoria & Diagnóstico Estratégico com IA (`/audit`):**
+   - Busca e seleção de pessoas em tempo real por nome ou Tree ID integrada à API do FamilySearch.
+   - Detecção algorítmica de lacunas (gaps) na linhagem (falta de data de nascimento, filiação ou fontes).
+   - **Diagnóstico com IA (Gemini 3.5 Flash)**: Análise inteligente das lacunas e geração de roteiro de investigação GPS em 3 passos com priorização de certidões arquivísticas.
+   - Ação direta em cada lacuna para transitar diretamente à busca com os filtros pré-preenchidos.
 
-4. **Diário de Pesquisa Auditável GPS (`/research-log`):**
-   - Histórico probatório completo com status: *Verificado*, *Negativo*, *Em Andamento* e *Conflito*.
-   - Exportação direta em **Markdown** formatado nos padrões acadêmicos do GPS.
+4. **Diário de Pesquisa Persistente GPS (`/research-log`):**
+   - Armazenamento em arquivo local JSON (`src/data/research-log.json`) com API REST dedicada (`/api/research-log` com GET, POST e DELETE).
+   - Modal interativo para registro de investigações com citação de fontes, DGS, evidências, status probatório e cálculo de confiança.
+   - Filtros dinâmicos e exportação direta em **Markdown** nos padrões acadêmicos do GPS.
 
-5. **Servidor MCP Integrado (`/api/mcp`):**
+5. **Customizador de Tema em Tempo Real (Estilo shadcn/ui):**
+   - Painel flutuante sem overlay (sem tela fosca), acessível pelo Avatar (*Personalizar UI*).
+   - Customização ao vivo de estilos (Nova, Default, Compact), paletas base, cores de acento, tipografia Google Fonts (Inter, Outfit, Plus Jakarta, Roboto, Playfair Display, JetBrains Mono) e raios de borda (0 a 1.0rem).
+   - Injeção dinâmica de CSS variables no DOM com persistência no `localStorage` e botão para copiar tokens CSS.
+
+6. **Servidor MCP Integrado (`/api/mcp`):**
    - Endpoint JSON expondo ferramentas genealógicas para agentes autônomos e clientes MCP compatíveis (`search_persons`, `get_tree_ancestors`, `get_dgs_waypoints`, `analyze_manuscript_image`).
 
-6. **Autenticação Híbrida & Segura:**
+7. **Autenticação Híbrida & Segura:**
    - Formulário de login modal (padrão shadcn `login-03` / `login-04`).
    - Persistência e renovação segura de Bearer Tokens e interceptação de sessão ativa.
    - Indicador de presença em tempo real (bolinha verde no canto superior direito do avatar).

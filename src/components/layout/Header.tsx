@@ -326,7 +326,7 @@ export function Header({ user: initialUser, onLogout }: HeaderProps) {
             className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-600/20 hover:bg-blue-500 transition-all cursor-pointer"
           >
             <LogIn className="h-3.5 w-3.5" />
-            <span>Entrar no GENIA</span>
+            <span>Entrar</span>
           </button>
         )}
       </div>

@@ -125,3 +125,29 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
 - **Qualidade & Testes:**
   - 26/26 testes unitários passando.
   - Biome JS com 0 erros em 64 arquivos.
+
+---
+
+## [Fase 8] - 2026-10-01
+### Adicionado / Refatorado
+- **Generalização Universal da Busca e Paleografia (`/search`):**
+  - Desvinculação completa de casos de teste específicos (remoção de referências rígidas a Colosovschi, Ivan e Bessarábia).
+  - Estruturação em 6 modalidades alinhadas ao FamilySearch: *Registros Históricos*, *Texto Completo (IA)*, *Imagens & DGS*, *Árvore Familiar*, *Livros & Genealogias* e *Paleografia Vision*.
+  - Suporte universal a idiomas no decifrador multimodal Gemini (`src/ai/gemini/vision.ts` e `ManuscriptViewer.tsx`): Português cartorial/paroquial, Italiano de *Stato Civile*, Espanhol, Latim eclesiástico, Alemão *Kurrent/Fraktur*, Russo Cirílico, Romeno, Francês, Polonês, Hebraico, Inglês e modo de auto-detecção.
+- **Auditoria de Árvore Dinâmica & Diagnóstico com IA (`/audit`):**
+  - Seletor dinâmico de pessoas com busca integrada à API do FamilySearch por nome ou identificador (ID).
+  - Endpoint de diagnóstico estratégico com IA `/api/audit/diagnosis` utilizando **Google Gemini 3.5 Flash**.
+  - Geração de roteiro probatório GPS em tempo real, priorizando fontes arquivísticas e certidões faltantes com plano de ação em 3 passos.
+  - Botão de investigação direta em cada lacuna, redirecionando para a busca com contexto preenchido.
+- **Diário de Pesquisa Persistente (`/research-log`):**
+  - Camada de armazenamento persistente em arquivo JSON (`src/data/research-log.json`).
+  - Route Handler `/api/research-log` implementando métodos `GET`, `POST` e `DELETE`.
+  - Interface com modal `Dialog` para cadastro de novas investigações probatórias, filtros por status e exportação em Markdown GPS.
+- **Customizador de Tema em Tempo Real (Estilo shadcn/ui `ui.shadcn.com/create`):**
+  - Implementação de `ThemeCustomizer.tsx` e `theme-config.ts` com injeção dinâmica de CSS variables no DOM (`--primary`, `--radius`, `--font-heading`, `--font-body`, cores de fundo e cartões).
+  - Painel flutuante sem overlay/backdrop ("sem tela fosca"), permitindo acompanhar a transformação visual dos componentes ao vivo.
+  - Suporte a estilos (Nova, Default, Compact), paletas base (Slate, Zinc, Stone, Neutral, Gray), cores de acento (Blue, Violet, Emerald, Rose, Orange, Amber, Cyan), tipografia Google Fonts (Inter, Outfit, Plus Jakarta Sans, Roboto, Playfair Display, JetBrains Mono) e raios de borda (0 a 1.0rem).
+  - Persistência das configurações no `localStorage`.
+  - Acesso centralizado e exclusivo via item *"Personalizar UI"* no dropdown do Avatar no Header.
+- **Padronização de Diretrizes de IA (`docs/ai/rules.md` e `docs/ai/agents.md`):**
+  - Regra obrigatória estabelecida: o agente de IA deve sempre entregar a mensagem de commit correspondente ao final de cada tarefa, estritamente em formato de texto puro sem comandos de terminal.

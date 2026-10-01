@@ -147,7 +147,7 @@ export function LoginForm({ onSuccess, onCancel }: LoginFormProps) {
               <span>Conectando ao FamilySearch...</span>
             </>
           ) : (
-            <span>Entrar no GENIA</span>
+            <span>Entrar</span>
           )}
         </Button>
 

@@ -87,10 +87,27 @@ Este documento descreve as ferramentas ativas expostas pelo servidor **Model Con
   | Campo | Tipo | Obrigatório | Descrição |
   | :--- | :--- | :--- | :--- |
   | `imageBase64` | `string` | **Sim** | Imagem do documento codificada em Base64 |
-  | `language` | `string` | Não | 'cyrillic_russian' \| 'romanian' \| 'general' |
+  | `language` | `string` | Não | Idioma/tradição paleográfica (ex: 'universal', 'portuguese', 'italian', 'spanish', 'latin', 'german', 'cyrillic_russian', 'romanian', 'french', 'polish', 'hebrew') |
   | `targetPerson` | `string` | Não | Nome procurado para correlacionar no texto transcrito |
   | `targetSurname` | `string` | Não | Sobrenome esperado no fólio |
   | `targetDate` | `string` | Não | Data aproximada do evento registrado |
-  | `villageName` | `string` | Não | Paróquia ou vila do registro (ex: "Beșghioz") |
-  | `year` | `string` | Não | Ano de referência do livro de registro (ex: "1909") |
+  | `villageName` | `string` | Não | Paróquia, cartório ou comarca do registro |
+  | `year` | `string` | Não | Ano de referência do livro de registro |
 * **Retorno:** Objeto com `transcription` (texto integral decifrado), `confidenceScore`, `matchFound` (booleano) e `summary` estruturado para registro no Diário GPS.
+
+---
+
+## Outros Endpoints Especializados da Plataforma
+
+### 5. `POST /api/audit/diagnosis`
+* **Finalidade:** Gera diagnóstico estratégico de lacunas genealógicas utilizando o modelo **Gemini 3.5 Flash**.
+* **Payload:** `{ rootPersonName: string, totalAncestors: number, generations: number, gaps: TreeAuditGap[] }`
+* **Retorno:** Diagnóstico completo com avaliação de integridade da linhagem, priorização de certidões arquivísticas e roteiro de 3 passos no padrão GPS.
+
+### 6. `GET / POST / DELETE /api/research-log`
+* **Finalidade:** Camada de persistência local para o Diário de Pesquisa Genealógica (Genealogical Proof Standard).
+* **Storage:** Arquivo `src/data/research-log.json`.
+* **Métodos:**
+  - `GET`: Retorna todas as entradas do log.
+  - `POST`: Adiciona novo registro probatório com cálculo de confiança e timestamp.
+  - `DELETE`: Remove registro específico por `id`.
