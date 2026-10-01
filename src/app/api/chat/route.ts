@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getGeminiClient } from "@/ai/gemini/client";
+import { getPersonDetails, getPersonSources } from "@/services/familysearch/person";
+import { getCurrentUser } from "@/services/familysearch/user";
+import { getSession } from "@/services/storage/session";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -27,6 +30,79 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 1. Check active FamilySearch session
+    const session = await getSession();
+    const isAuthenticated = Boolean(session?.accessToken);
+    let fsUser = null;
+    if (isAuthenticated) {
+      try {
+        fsUser = await getCurrentUser();
+      } catch {
+        // session might still be valid for tree operations
+      }
+    }
+
+    // 2. Detect any FamilySearch Person IDs in conversation or context
+    const fullText = `${messages.map((m) => m.content).join(" ")} ${context.personId || ""}`;
+    const idRegex = /\b([A-Z0-9]{4}-[A-Z0-9]{3,4})\b/gi;
+    const detectedIds = Array.from(new Set(fullText.match(idRegex) || []));
+
+    // 3. If IDs are present and session is active, retrieve real-time data directly from FamilySearch API
+    const realTimeFamilySearchData: string[] = [];
+
+    if (isAuthenticated && detectedIds.length > 0) {
+      for (const targetId of detectedIds.slice(0, 3)) {
+        try {
+          const [details, sources] = await Promise.all([
+            getPersonDetails(targetId).catch(() => null),
+            getPersonSources(targetId).catch(() => []),
+          ]);
+
+          if (details) {
+            let dataBlock = `\n======================================================\n`;
+            dataBlock += `DADOS REAIS EM TEMPO REAL EXTRAÍDOS DO FAMILYSEARCH (PESSOA ID: ${targetId}):\n`;
+            dataBlock += `- Nome Completo: ${details.fullName}\n`;
+            if (details.alternateNames.length > 0) {
+              dataBlock += `- Nomes Alternativos: ${details.alternateNames.join(", ")}\n`;
+            }
+            dataBlock += `- Gênero: ${details.gender || "Não informado"}\n`;
+            dataBlock += `- Nascimento Registrado: ${details.birth?.date || "Data exata não consta no perfil principal"} (Local: ${details.birth?.place || "Não informado"})\n`;
+            if (details.christening) {
+              dataBlock += `- Batismo / Cristianização: ${details.christening.date || "Não informado"} (Local: ${details.christening.place || "Não informado"})\n`;
+            }
+            if (details.marriage) {
+              dataBlock += `- Casamento: ${details.marriage.date || "Não informado"} (Local: ${details.marriage.place || "Não informado"})\n`;
+            }
+            if (details.death) {
+              dataBlock += `- Falecimento / Óbito: ${details.death.date || "Não informado"} (Local: ${details.death.place || "Não informado"})\n`;
+            }
+
+            dataBlock += `\nDOCUMENTOS E FONTES ARQUIVÍSTICAS ANEXADAS NO FAMILYSEARCH (${sources.length} fontes anexadas):\n`;
+            if (sources.length === 0) {
+              dataBlock += `- Nenhuma fonte anexada até o momento para este perfil.\n`;
+            } else {
+              sources.forEach((s, idx) => {
+                dataBlock += `${idx + 1}. [${s.titles.join(" / ") || "Documento Histórico"}]\n`;
+                if (s.citation) {
+                  dataBlock += `   Citação: ${s.citation.replace(/<[^>]+>/g, "")}\n`;
+                }
+                if (s.url) {
+                  dataBlock += `   Link FamilySearch: ${s.url}\n`;
+                }
+              });
+            }
+            dataBlock += `======================================================\n`;
+            realTimeFamilySearchData.push(dataBlock);
+          }
+        } catch (fetchErr) {
+          console.warn(
+            `[chat] Falha ao consultar dados do FamilySearch para ${targetId}:`,
+            fetchErr,
+          );
+        }
+      }
+    }
+
     const ai = getGeminiClient();
 
     const candidateModels = [
@@ -35,20 +111,38 @@ export async function POST(request: NextRequest) {
       "gemini-flash-lite-latest",
     ];
 
-    const systemInstruction = `Você é o GENIA Copilot, um Assistente Especialista em Genealogia Científica, História Documental e Padrão de Prova Genealógica (GPS - Genealogical Proof Standard).
+    const systemInstruction = `Você é o GENIA Copilot, um Assistente Especialista de Inteligência Artificial em Genealogia Científica, História Documental e Padrão de Prova Genealógica (GPS), plenamente conectado ao FamilySearch.
 
-SEU PAPEL:
-1. Auxiliar o usuário em pesquisas de ancestrais, decifração de documentos antigos, busca em cartórios civis e paróquias e superação de "muralhas" (brick walls) na árvore.
-2. Fornecer orientações práticas sobre acervos (FamilySearch, Arquivo Nacional, Arquivos Distritais de Portugal, Archivio di Stato da Itália, paróquias, registros civis brasileiros, etc.).
-3. Explicar como localizar livros de batismo, casamento e óbito, interpretar numerações de microfilmes (DGS) e formular hipóteses metodológicas sólidas.
-4. Responda em Português do Brasil com tom profissional, encorajador, estruturado e didático. Use markdown, tópicos e destaques onde apropriado.
+STATUS DA CONEXÃO DO USUÁRIO:
+${
+  isAuthenticated
+    ? `✅ O USUÁRIO ESTÁ AUTENTICADO NO FAMILYSEARCH!
+- Usuário Conectado: ${fsUser?.displayName || fsUser?.contactName || "Usuário Conectado"}
+- ID da Pessoa na Árvore: ${fsUser?.personId || "Disponível na sessão"}
+- Nível de Acesso: TOTAL E DIRETO. Você possui conexão ativa e autorizada com a API do FamilySearch.`
+    : `⚠️ Sessão em modo visitante (o usuário ainda não fez login no FamilySearch nesta sessão).`
+}
 
-CONTEXTO ATUAL DA NAVEGAÇÃO DO USUÁRIO:
-- Rota atual: ${context.currentPath || "/"}
-- Pessoa em foco na árvore: ${context.personName ? `${context.personName} (ID: ${context.personId || "N/D"})` : "Nenhuma selecionada no momento"}
-${context.totalAncestors ? `- Total de ancestrais auditados: ${context.totalAncestors} ao longo de ${context.generations || 4} gerações.` : ""}
+DIRETRIZES FUNDAMENTAIS E INEGOCIÁVEIS:
+1. **NUNCA AFIRME QUE NÃO TEM ACESSO À CONTA OU À ÁRVORE DO USUÁRIO.** Quando o usuário estiver logado, você tem acesso pleno à API do FamilySearch. Todos os dados da árvore, fontes e anexos solicitados são consultados e disponibilizados em tempo real diretamente pelo sistema.
+2. **NUNCA PEÇA AO USUÁRIO PARA COPIAR E COLAR DADOS OU FONTES QUE JÁ EXISTEM NO FAMILYSEARCH.** Você já lê os dados e os documentos anexados diretamente.
+3. **SE O USUÁRIO FORNECER UM ID OU PERGUNTAR SOBRE UMA PESSOA (ex: GYT8-1CB):**
+   - Examine minuciosamente os DADOS REAIS EXTRAÍDOS DO FAMILYSEARCH disponibilizados abaixo.
+   - Apresente quem é a pessoa, as informações vitais já confirmadas e liste as fontes/documentos anexados.
+   - Se o usuário perguntar se é possível saber a data exata de nascimento (ou qualquer lacuna):
+     a) Verifique se a data exata já consta no perfil ou nas fontes.
+     b) Se não constar, analise as fontes anexadas (ex: registros de casamento civil/religioso, certidões de filhos, assentamentos paroquiais de Sergipe, São Paulo, etc.). Mostre como deduzir a idade a partir desses termos (ex: idade declarada no matrimônio ou óbito) e indique exatamente em qual paróquia, comarca e intervalo de datas deve ser buscado o assento original de batismo ou nascimento para encontrar o dia e mês exatos.
+4. Responda em Português do Brasil de forma elegante, proativa, encorajadora e fundamentada no Genealogical Proof Standard (GPS).
 
-Seja conciso, direto e ofereça passos acionáveis.`;
+CONTEXTO DA NAVEGAÇÃO:
+- Página atual: ${context.currentPath || "/"}
+${context.personName ? `- Pessoa em foco na página: ${context.personName} (${context.personId || ""})` : ""}
+
+${
+  realTimeFamilySearchData.length > 0
+    ? `DADOS CONSULTADOS DA SESSÃO ATIVA DO FAMILYSEARCH:\n${realTimeFamilySearchData.join("\n")}`
+    : ""
+}`;
 
     // Map conversation messages to Gemini format
     const geminiContents = messages.map((m) => ({
@@ -64,8 +158,8 @@ Seja conciso, direto e ofereça passos acionáveis.`;
           model,
           config: {
             systemInstruction,
-            temperature: 0.7,
-            maxOutputTokens: 1200,
+            temperature: 0.5,
+            maxOutputTokens: 1500,
           },
           contents: geminiContents,
         });

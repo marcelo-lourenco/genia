@@ -186,11 +186,12 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
   - Abas de análise com transição instantânea: *Original Diplomático*, *Tradução em Português Moderno* (para certidões em latim, cirílico, italiano ou alemão) e *Entidades GPS* (tipo de registro, data, local, filiação, testemunhas e vigário).
   - Ação integrada *"Vincular ao Diário de Pesquisa"*: gravação direta do fólio transcrito em `/api/research-log` com feedback imediato e atalho para navegação.
   - Cascata de resiliência a 503 integrada no decifrador visual Gemini em `src/ai/gemini/vision.ts`.
-- **GENIA Copilot Conversacional (Drawer Lateral Global & Atalho `Ctrl+J`):**
+- **GENIA Copilot Conversacional & Integração Direta com a Sessão FamilySearch:**
   - Implementação de `CopilotDrawer.tsx` montado no `RootLayout` (`layout.tsx`), acessível a partir de qualquer tela da aplicação via botão flutuante e atalho de teclado global `Ctrl + J` (ou `Cmd + J`).
-  - Endpoint de conversação com IA `/api/chat` dotado de cascata de modelos (`gemini-3.5-flash` -> `gemini-3.5-flash-lite` -> `gemini-flash-lite-latest`).
-  - Consciência de contexto dinâmico (*Context-Awareness*): detecta a rota ativa (`/my-tree`, `/audit`, `/search`, etc.) e informa a persona do copiloto.
-  - Sugestões rápidas de pesquisa genealógica (superação de *brick walls*, Padrão GPS, busca em acervos de Portugal/Itália/Brasil, latim eclesiástico e desembarque de imigrantes).
+  - Indicador visual dinâmico no cabeçalho do Copilot: exibe crachá verde pulsante *"FamilySearch Conectado"* e o ID raiz da pessoa quando autenticado.
+  - Endpoint `/api/chat` conectado à sessão ativa do usuário: detecta menção a qualquer identificador FamilySearch (como `GYT8-1CB`), consulta em tempo real `getPersonDetails` e `getPersonSources`, e injeta os fatos vitais e a lista completa de documentos anexados diretamente no contexto da IA.
+  - Erradicação de mensagens de "falta de acesso": o Copilot agora reconhece a sessão ativa, examina todas as fontes anexadas e analisa datas de batismo/casamento/óbito para formular estratégias concretas de busca documental conforme o GPS.
+  - Cascata de modelos de IA (`gemini-3.5-flash` -> `gemini-3.5-flash-lite` -> `gemini-flash-lite-latest`) garantindo respostas rápidas e sem erros 503.
 - **Agente de Investigação Autônoma de Ponta a Ponta (`/audit` & `InvestigationModal.tsx`):**
   - Adicionado botão *"Investigação Autônoma GPS"* em cada lacuna detectada na árvore do usuário.
   - Endpoint da máquina de raciocínio probatório `/api/agent/investigate`: executa a cadeia probatória completa do Genealogical Proof Standard (GPS).

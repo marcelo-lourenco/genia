@@ -89,3 +89,13 @@
 * **Evolução Contínua do Conhecimento dos Agentes de IA:**
   - Sempre que forem definidas novas diretrizes, boas práticas, regras de **"o que NÃO fazer" (anti-patterns)**, decisões de arquitetura, padrões de engenharia, UI/UX ou segurança relevantes para o trabalho dos agentes de IA, a documentação técnica (`docs/ai/rules.md` e `docs/ai/agents.md`) **deve ser atualizada imediatamente**.
   - O agente não deve apenas seguir a instrução pontualmente, mas sim registrar a diretriz na base de conhecimento para que todos os agentes subsequentes operem sob as mesmas regras.
+
+---
+
+## 9. Consciência de Sessão e Acesso Pleno à API do FamilySearch no Copiloto Conversacional
+* **Conexão Real à Sessão do Usuário:** O Copiloto Conversacional (`/api/chat` e `CopilotDrawer.tsx`) opera diretamente conectado à sessão autenticada do FamilySearch (`getSession()`).
+* **Anti-Pattern Proibido:** É **expressamente proibido** o Copiloto alegar falta de acesso técnico, dizer que não pode ler a árvore privada ou pedir para o usuário copiar e colar dados ou fontes que o FamilySearch já possui.
+* **Consulta e Injeção Automática de Dados:**
+  - Sempre que o usuário mencionar um identificador FamilySearch (padrão `XXXX-XXX`, como `GYT8-1CB`), o backend deve consultar em tempo real os detalhes da pessoa (`getPersonDetails`) e as fontes/documentos anexados (`getPersonSources`).
+  - O Copiloto deve receber esses dados reais e analisar prontamente os fatos, documentos e pistas históricas para responder à dúvida do usuário de maneira proativa e fundamentada no GPS.
+

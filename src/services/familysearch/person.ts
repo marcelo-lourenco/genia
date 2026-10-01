@@ -65,3 +65,39 @@ export async function getPersonDetails(personId: string): Promise<DetailedPerson
     raw: person,
   };
 }
+
+export interface PersonSourceDescription {
+  id?: string;
+  titles?: string[];
+  citation?: string;
+  url?: string;
+  notes?: string;
+}
+
+/**
+ * Retrieves attached sources and documents for a person from FamilySearch Tree
+ */
+export async function getPersonSources(personId: string): Promise<PersonSourceDescription[]> {
+  try {
+    const data = await familySearchFetch<{
+      sourceDescriptions?: Array<{
+        id?: string;
+        titles?: Array<{ value?: string }>;
+        citations?: Array<{ value?: string }>;
+        about?: string;
+        notes?: Array<{ text?: string }>;
+      }>;
+    }>(`/platform/tree/persons/${personId}/sources`);
+
+    return (data.sourceDescriptions || []).map((s) => ({
+      id: s.id,
+      titles: s.titles?.map((t) => t.value || "").filter(Boolean) || [],
+      citation: s.citations?.[0]?.value,
+      url: s.about,
+      notes: s.notes?.map((n) => n.text || "").join("\n"),
+    }));
+  } catch (error) {
+    console.warn(`Could not fetch sources for person ${personId}:`, error);
+    return [];
+  }
+}

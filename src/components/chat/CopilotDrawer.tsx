@@ -36,13 +36,40 @@ export function CopilotDrawer() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [authProfile, setAuthProfile] = useState<{
+    authenticated: boolean;
+    user?: { name: string; username: string; personId?: string };
+  } | null>(null);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/auth/profile");
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          setAuthProfile(data);
+          setMessages([
+            {
+              id: "welcome-auth",
+              role: "assistant",
+              content: `Olá, **${data.user.name || "Pesquisador"}**! Sou o **GENIA Copilot**, conectado à sua conta do **FamilySearch**.\n\nTenho acesso direto e em tempo real à sua árvore, registros e fontes anexadas. Você pode me passar qualquer identificador (como \`${data.user.personId || "GYT8-36P"}\` ou de seus antepassados), pedir para eu analisar certidões ou formular planos de investigação probatória conforme o **GPS**.\n\nQual antepassado gostaria que eu examinasse agora?`,
+              timestamp: "Agora",
+            },
+          ]);
+        }
+      } catch {
+        // offline fallback
+      }
+    }
+    loadProfile();
+  }, []);
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome-1",
       role: "assistant",
       content:
-        "Olá! Sou o **GENIA Copilot**, seu assistente genealógico com inteligência artificial.\n\nPosso ajudar você a analisar lacunas na sua árvore, sugerir acervos e cartórios para busca de certidões, decifrar documentos históricos ou estruturar provas segundo o **Genealogical Proof Standard (GPS)**.\n\nComo posso ajudar na sua pesquisa hoje?",
+        "Olá! Sou o **GENIA Copilot**, seu assistente genealógico com inteligência artificial conectado à sua conta do **FamilySearch**.\n\nTenho acesso direto à sua árvore, fontes anexadas e acervos históricos. Você pode me enviar qualquer ID de antepassado (como `GYT8-1CB`), pedir análises de parentesco ou traçar rotas probatórias segundo o **Genealogical Proof Standard (GPS)**.\n\nComo posso ajudar na sua pesquisa hoje?",
       timestamp: "Agora",
     },
   ]);
@@ -94,6 +121,8 @@ export function CopilotDrawer() {
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
           context: {
             currentPath: pathname,
+            personId: authProfile?.user?.personId,
+            personName: authProfile?.user?.name,
           },
         }),
       });
@@ -222,12 +251,25 @@ export function CopilotDrawer() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-sm font-semibold text-foreground">GENIA Copilot</h3>
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
-                    GPS AI
-                  </span>
+                  {authProfile?.authenticated ? (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      FamilySearch Conectado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+                      GPS AI
+                    </span>
+                  )}
                 </div>
                 <p className="text-[11px] text-muted-foreground">
                   Contexto: <span className="font-mono text-foreground">{pathname}</span>
+                  {authProfile?.user?.personId && (
+                    <span className="ml-1 text-muted-foreground/80">
+                      • Raiz:{" "}
+                      <span className="font-mono text-primary">{authProfile.user.personId}</span>
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
