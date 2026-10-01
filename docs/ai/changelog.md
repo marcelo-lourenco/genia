@@ -163,3 +163,8 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
   - Remoção de tokens e nomes mockados do `Header.tsx`, `layout.tsx` e rotas de autenticação.
   - Reformulação completa da página `/my-tree` para renderização **100% dinâmica**: consome o perfil autenticado (`/api/auth/profile`) e a API do FamilySearch (`/api/mcp`), permitindo busca por qualquer ID com numeração Ahnen genealógica oficial.
   - Atualização de `docs/ai/rules.md` (Seção 5) formalizando a regra inegociável de zero hardcoding de dados pessoais.
+- **Correção da Resolução de Identificador de Árvore & Erro HTTP 410 Gone:**
+  - Diagnóstico e correção no mapeamento de `/platform/users/current`: o FamilySearch retorna `user.treeUserId` como um identificador interno de conta (`9QZ9-PY5`) que não existe na árvore familiar (gerando erro `HTTP 410 Gone` no MCP).
+  - Atualizado `src/services/familysearch/user.ts` para mapear `user.personId` e extrair o ID real da pessoa em `user.links.person.href`.
+  - Atualizado `src/services/familysearch/tree.ts` com tratamento amigável de erro HTTP 410 e suporte completo a cônjuge (`ascendancyNumber === "1-S"`).
+  - Árvore familiar agora renderiza com sucesso em tempo real todos os ancestrais e cônjuges diretamente da API do FamilySearch.

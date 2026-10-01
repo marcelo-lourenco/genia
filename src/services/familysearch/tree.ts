@@ -1,10 +1,11 @@
 import type { TreeAuditGap } from "@/types/agent";
 import type { GedcomxDocument, GedcomxPerson } from "@/types/gedcomx";
-import { familySearchFetch } from "./client";
+import { FamilySearchApiError, familySearchFetch } from "./client";
 
 export interface AncestryNode {
   id: string;
-  ahnenNumber: number; // 1 = root, 2 = father, 3 = mother, 4 = paternal grandfather, etc.
+  ahnenNumber: number; // 1 = root, 2 = father, 3 = mother, etc. -1 = spouse
+  ascendancyNumber?: string;
   name: string;
   gender?: string;
   lifespan?: string;
@@ -31,9 +32,19 @@ export async function getTreeAncestors(
   personId: string,
   generations = 4,
 ): Promise<TreeAncestryAuditResult> {
-  const data = await familySearchFetch<GedcomxDocument>(
-    `/platform/tree/ancestry?person=${personId}&generations=${generations}`,
-  );
+  let data: GedcomxDocument;
+  try {
+    data = await familySearchFetch<GedcomxDocument>(
+      `/platform/tree/ancestry?person=${personId}&generations=${generations}`,
+    );
+  } catch (error) {
+    if (error instanceof FamilySearchApiError && error.status === 410) {
+      throw new Error(
+        `O identificador "${personId}" não é uma pessoa válida na Árvore Familiar ou foi excluído/mesclado no FamilySearch (HTTP 410 Gone).`,
+      );
+    }
+    throw error;
+  }
 
   const personsMap = new Map<string, GedcomxPerson>();
   if (data.persons) {
@@ -56,11 +67,11 @@ export async function getTreeAncestors(
     const deathDate = person.display?.deathDate || deathFact?.date?.original;
     const deathPlace = person.display?.deathPlace || deathFact?.place?.original;
 
-    const ahnenNumber = person.display?.ascendancyNumber
-      ? Number.parseInt(person.display.ascendancyNumber, 10)
-      : id === personId
-        ? 1
-        : 0;
+    const ascendancyNumber = person.display?.ascendancyNumber || (id === personId ? "1" : "0");
+    const ahnenNumber =
+      ascendancyNumber === "1-S"
+        ? -1
+        : Number.parseInt(ascendancyNumber, 10) || (id === personId ? 1 : 0);
 
     const missingData: Array<"birthDate" | "birthPlace" | "father" | "mother" | "sources"> = [];
     if (!birthDate) {
@@ -76,6 +87,7 @@ export async function getTreeAncestors(
     ancestors.push({
       id,
       ahnenNumber,
+      ascendancyNumber,
       name: primaryName,
       gender: person.display?.gender || person.gender?.type?.split("/").pop(),
       lifespan:

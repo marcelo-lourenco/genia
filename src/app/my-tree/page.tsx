@@ -85,6 +85,8 @@ export default function MyTreePage() {
       const matGf = ancestors.find((a) => a.ahnenNumber === 6);
       const matGm = ancestors.find((a) => a.ahnenNumber === 7);
 
+      const spouse = ancestors.find((a) => a.ascendancyNumber === "1-S" || a.ahnenNumber === -1);
+
       const treeData: PersonNode = {
         id: root.id,
         name: root.name,
@@ -92,6 +94,13 @@ export default function MyTreePage() {
         lifespan: root.lifespan,
         birthDate: root.birthDate,
         birthPlace: root.birthPlace,
+        spouse: spouse
+          ? {
+              id: spouse.id,
+              name: spouse.name,
+              lifespan: spouse.lifespan,
+            }
+          : undefined,
         father: father
           ? {
               id: father.id,
@@ -156,7 +165,7 @@ export default function MyTreePage() {
     }
   }, []);
 
-  // 1. Fetch current logged-in profile to get treeUserId
+  // 1. Fetch current logged-in profile to get tree personId
   useEffect(() => {
     async function initUser() {
       try {
@@ -164,7 +173,7 @@ export default function MyTreePage() {
         const data = await res.json();
         if (data.authenticated && data.user) {
           setUserProfile(data.user);
-          const activeId = data.user.treeUserId || data.user.id || "";
+          const activeId = data.user.personId || data.user.treeUserId || data.user.id || "";
           if (activeId) {
             setPersonId(activeId);
             loadTree(activeId, generations);

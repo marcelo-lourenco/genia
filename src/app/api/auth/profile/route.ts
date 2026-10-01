@@ -22,7 +22,8 @@ export async function GET() {
         displayName: displayName,
         contactName: fsUser?.contactName || displayName,
         email: fsUser?.email || "",
-        treeUserId: fsUser?.treeUserId || fsUser?.id || "",
+        personId: fsUser?.personId || fsUser?.treeUserId || "",
+        treeUserId: fsUser?.personId || fsUser?.treeUserId || "",
         id: fsUser?.id || "",
         avatarUrl: null, // Sem placeholder - usa fallback com iniciais
       },

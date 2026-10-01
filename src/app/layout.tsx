@@ -31,7 +31,8 @@ export default async function RootLayout({
         contactName: fsUser?.contactName,
         displayName: fsUser?.displayName,
         email: fsUser?.email,
-        treeUserId: fsUser?.treeUserId || fsUser?.id || "",
+        personId: fsUser?.personId || fsUser?.treeUserId || "",
+        treeUserId: fsUser?.personId || fsUser?.treeUserId || fsUser?.id || "",
       }
     : null;
 
