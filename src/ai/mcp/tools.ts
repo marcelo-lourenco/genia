@@ -87,7 +87,10 @@ export const mcpToolsRegistry: Record<string, McpToolDefinition> = {
     inputSchema: z.object({
       imageBase64: z.string().describe("Conteúdo da imagem em Base64"),
       mimeType: z.string().optional().default("image/jpeg"),
-      language: z.enum(["cyrillic_russian", "romanian", "general"]).default("cyrillic_russian"),
+      language: z
+        .string()
+        .default("general")
+        .describe("Idioma ou tradição paleográfica do documento"),
       targetPerson: z.string().optional().describe("Nome do indivíduo procurado"),
       targetSurname: z.string().optional().describe("Sobrenome procurado"),
       targetFather: z.string().optional().describe("Nome do pai procurado"),
@@ -100,7 +103,7 @@ export const mcpToolsRegistry: Record<string, McpToolDefinition> = {
       const typed = args as {
         imageBase64: string;
         mimeType?: string;
-        language: "cyrillic_russian" | "romanian" | "general";
+        language?: string;
         villageName?: string;
         year?: string;
         targetPerson?: string;

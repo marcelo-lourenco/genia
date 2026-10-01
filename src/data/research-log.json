@@ -1,0 +1,52 @@
+[
+  {
+    "id": "log-1",
+    "timestamp": "2026-10-01 00:08",
+    "repository": "Arquivo Nacional da Moldávia (ANRM)",
+    "collection": "Moldova, Church Books, 1811-1936",
+    "sourceReference": "Fundo 211, Opis 2, Processo 476, Beșghioz (Sf. Mihail), Folha 342, Imagem 68",
+    "searchedCriteria": {
+      "targetName": "Иван (Iwan/Ivan)",
+      "variants": ["Colosovschi", "Colosovski", "Колосовский"],
+      "dateRange": "Outubro de 1909 (18/10/1909)",
+      "location": "Beșghioz, Bender"
+    },
+    "resultStatus": "verified",
+    "findings": "Assento de batismo nº 68 localizado. Data de nascimento: 05/10/1909 (Juliano) = 18/10/1909 (Gregoriano). Pais: Harlampe (filho de Ivan) e Maria. Padrinhos: Gheorghe Terzi.",
+    "confidenceScore": 0.96,
+    "notes": "Conformidade total com a tradição familiar e registros brasileiros."
+  },
+  {
+    "id": "log-2",
+    "timestamp": "2026-10-01 00:04",
+    "repository": "FamilySearch Digital Library",
+    "collection": "Bender Uezd Metrical Records 1909",
+    "sourceReference": "DGS 005610797, Item 2 de 3, Processo 445",
+    "searchedCriteria": {
+      "targetName": "Iwan Colosovschi",
+      "variants": ["Colosovski"],
+      "location": "Distrito de Bender"
+    },
+    "resultStatus": "negative",
+    "findings": "Exame das folhas do Processo 445 não contém a paróquia de Beșghioz. Identificado que Beșghioz pertence ao Processo 476 (Item 3).",
+    "confidenceScore": 1,
+    "notes": "Resultado negativo orientou o redirecionamento para o Item 3 / Processo 476."
+  },
+  {
+    "id": "log-3",
+    "timestamp": "2026-09-30 23:45",
+    "repository": "Hospedaria de Imigrantes de São Paulo",
+    "collection": "Livros de Registro da Hospedaria do Brás",
+    "sourceReference": "Livro 114, Página 82, Ordem 14.520",
+    "searchedCriteria": {
+      "targetName": "Harlampe Colosovschi",
+      "variants": ["Colosovski", "Harlangal"],
+      "dateRange": "Janeiro de 1926",
+      "location": "Porto de Santos / Vapor Arlanza"
+    },
+    "resultStatus": "verified",
+    "findings": "Chegada registrada em 31/01/1926 no navio Arlanza. Família composta por Harlampe (37 anos), Maria (34 anos) e filhos incluindo Iwan (16 anos).",
+    "confidenceScore": 0.98,
+    "notes": "Confirmação da data e navio da imigração familiar."
+  }
+]

@@ -4,10 +4,19 @@ import { familySearchFetch } from "./client";
 export interface SearchPersonsParams {
   givenName?: string;
   surname: string;
+  gender?: string;
   birthDate?: string;
   birthPlace?: string;
+  marriageDate?: string;
+  marriagePlace?: string;
+  deathDate?: string;
+  deathPlace?: string;
   fatherGivenName?: string;
+  fatherSurname?: string;
   motherGivenName?: string;
+  motherSurname?: string;
+  spouseGivenName?: string;
+  spouseSurname?: string;
   count?: number;
 }
 
@@ -22,6 +31,8 @@ export interface SearchResultPerson {
   birthPlace?: string;
   deathDate?: string;
   deathPlace?: string;
+  parents?: string[];
+  spouse?: string;
   raw: GedcomxPerson;
 }
 
@@ -80,20 +91,51 @@ export async function searchPersons(params: SearchPersonsParams): Promise<Search
   if (params.givenName) {
     searchParams.set("q.givenName", params.givenName.trim());
   }
-
-  const normalizedDate = normalizeSearchDate(params.birthDate);
-  if (normalizedDate) {
-    searchParams.set("q.birthDate", normalizedDate);
+  if (params.gender) {
+    searchParams.set("q.gender", params.gender.trim());
   }
 
+  const normalizedBirthDate = normalizeSearchDate(params.birthDate);
+  if (normalizedBirthDate) {
+    searchParams.set("q.birthDate", normalizedBirthDate);
+  }
   if (params.birthPlace) {
     searchParams.set("q.birthPlace", params.birthPlace.trim());
   }
+
+  const normalizedMarriageDate = normalizeSearchDate(params.marriageDate);
+  if (normalizedMarriageDate) {
+    searchParams.set("q.marriageDate", normalizedMarriageDate);
+  }
+  if (params.marriagePlace) {
+    searchParams.set("q.marriagePlace", params.marriagePlace.trim());
+  }
+
+  const normalizedDeathDate = normalizeSearchDate(params.deathDate);
+  if (normalizedDeathDate) {
+    searchParams.set("q.deathDate", normalizedDeathDate);
+  }
+  if (params.deathPlace) {
+    searchParams.set("q.deathPlace", params.deathPlace.trim());
+  }
+
   if (params.fatherGivenName) {
     searchParams.set("q.fatherGivenName", params.fatherGivenName.trim());
   }
+  if (params.fatherSurname) {
+    searchParams.set("q.fatherSurname", params.fatherSurname.trim());
+  }
   if (params.motherGivenName) {
     searchParams.set("q.motherGivenName", params.motherGivenName.trim());
+  }
+  if (params.motherSurname) {
+    searchParams.set("q.motherSurname", params.motherSurname.trim());
+  }
+  if (params.spouseGivenName) {
+    searchParams.set("q.spouseGivenName", params.spouseGivenName.trim());
+  }
+  if (params.spouseSurname) {
+    searchParams.set("q.spouseSurname", params.spouseSurname.trim());
   }
 
   const count = params.count || 20;

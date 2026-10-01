@@ -11,8 +11,11 @@ import { getGeminiClient } from "./client";
 export interface AnalyzeManuscriptOptions {
   imageBase64: string;
   mimeType?: string;
-  language: "cyrillic_russian" | "romanian" | "general";
-  context: CyrillicTranscriptionContext & RomanianTranscriptionContext;
+  language?: string;
+  context: CyrillicTranscriptionContext &
+    RomanianTranscriptionContext & {
+      notes?: string;
+    };
   modelName?: string;
 }
 
@@ -39,15 +42,47 @@ export async function analyzeManuscript(
   options: AnalyzeManuscriptOptions,
 ): Promise<ManuscriptAnalysisResult> {
   const ai = getGeminiClient();
-  const model = options.modelName || "gemini-2.5-flash";
+  const model = options.modelName || "gemini-3.5-flash";
 
   let prompt = "";
-  if (options.language === "cyrillic_russian") {
+  const langLower = (options.language || "general").toLowerCase();
+
+  if (
+    langLower.includes("cyrillic") ||
+    langLower.includes("russian") ||
+    langLower.includes("russo")
+  ) {
     prompt = buildCyrillicParishPrompt(options.context);
-  } else if (options.language === "romanian") {
+  } else if (
+    langLower.includes("romanian") ||
+    langLower.includes("moldav") ||
+    langLower.includes("romeno")
+  ) {
     prompt = buildRomanianParishPrompt(options.context);
   } else {
-    prompt = `Transcreva e analise esta página de registro histórico para identificar indivíduos, datas e filiação.`;
+    prompt = `Você é um especialista em Paleografia Histórica e Genealogia.
+Analise a imagem deste fólio ou documento genealógico no idioma/contexto: ${options.language || "Universal / Auto-detectar"}.
+
+DADOS DE CONTEXTO PARA BUSCA:
+- Pessoa procurada: ${options.context.targetPerson || "Qualquer indivíduo relevante"}
+- Sobrenome: ${options.context.targetSurname || "Não especificado"}
+- Data/Ano aproximado: ${options.context.year || options.context.targetDate || "Qualquer ano"}
+- Localidade / Paróquia / Cartório: ${options.context.villageName || "Não especificado"}
+
+INSTRUÇÕES:
+1. Transcreva com máxima precisão o texto relevante visível no documento.
+2. Identifique os dados genealógicos essenciais: Nomes completos, filiação (pai e mãe), datas (nascimento, batismo, casamento ou óbito), testemunhas/padrinhos e oficial que lavrou o assento.
+3. Indique se o indivíduo procurado foi localizado na imagem.
+4. Forneça uma estimativa de confiança probatória (0 a 100%) conforme o padrão GPS (Genealogical Proof Standard).
+5. Escreva um resumo analítico claro com as evidências extraídas.
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+CORRESPONDÊNCIA_ENCONTRADA: [Sim/Não]
+CONFIANÇA: [X]%
+TRANSCRIÇÃO:
+[Texto transcrito]
+RESUMO_GENEALÓGICO:
+[Resumo dos fatos e evidências extraídas]`;
   }
 
   const cleanBase64 = options.imageBase64.replace(/^data:image\/\w+;base64,/, "");

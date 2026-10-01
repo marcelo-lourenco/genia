@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
+import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { getCurrentUser } from "@/services/familysearch/user";
 import { getSession } from "@/services/storage/session";
@@ -36,6 +37,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <Header user={userProfile} />
           <div className="flex-1">{children}</div>
+          <ThemeCustomizer />
         </ThemeProvider>
       </body>
     </html>

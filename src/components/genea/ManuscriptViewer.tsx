@@ -6,13 +6,11 @@ import type { ManuscriptAnalysisResult } from "@/ai/gemini/vision";
 
 export function ManuscriptViewer() {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
-  const [language, setLanguage] = useState<"cyrillic_russian" | "romanian" | "general">(
-    "cyrillic_russian",
-  );
-  const [targetPerson, setTargetPerson] = useState("Иван (Ivan)");
-  const [targetSurname, setTargetSurname] = useState("Колосовский (Colosovschi)");
-  const [targetDate, setTargetDate] = useState("18/10/1909");
-  const [villageName, setVillageName] = useState("Beșghioz (Sf. Mihail)");
+  const [language, setLanguage] = useState<string>("universal");
+  const [targetPerson, setTargetPerson] = useState("");
+  const [targetSurname, setTargetSurname] = useState("");
+  const [targetDate, setTargetDate] = useState("");
+  const [villageName, setVillageName] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ManuscriptAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,27 +32,27 @@ export function ManuscriptViewer() {
     setImageBase64(
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
     );
+    setTargetPerson("Antônio");
+    setTargetSurname("Albuquerque");
+    setTargetDate("15/04/1892");
+    setVillageName("Paróquia Nossa Senhora da Conceição");
+    setLanguage("portuguese");
     setResult({
       matchFound: true,
-      confidenceScore: 0.94,
-      transcription: `[Registro Paroquial de Beșghioz, Outubro de 1909, Folha 342]
-Часть первая: О родившихся
-Nº Assento: 68 (Masc.)
-Nascimento: 5 de Outubro de 1909 (Juliano) / 18 de Outubro (Gregoriano)
-Batismo: 11 de Outubro de 1909
-Nome do Recém-nascido: Иванъ (Ivan)
-Pais: Деревни Бешгіозъ поселянинъ Харлампій Ивановъ Колосовскій и законная жена его Марія... оба православнаго вѣроисповѣданія.
-Padrinhos: Деревни Бешгіозъ поселяне Георгій Терзи и Анна...
-Sacerdote: Священникъ Михаилъ...`,
+      confidenceScore: 0.95,
+      transcription: `[Registro Paroquial de Batismo, Livro 14, Folha 88, Assento 42]
+Aos quinze dias do mês de abril de mil oitocentos e noventa e dois, nesta Igreja Matriz de Nossa Senhora da Conceição, batizei solenemente o infante Antônio, nascido a três do corrente mês, filho legítimo de Manuel de Albuquerque e de sua mulher Francisca de Almeida.
+Foram padrinhos o capitão José da Silva e Maria do Carmo. Para constar, lavrei este termo.
+O Vigário Paroquial.`,
       extractedDetails: {
-        childName: "Иван (Ivan)",
-        fatherName: "Харлампий Иванов Колосовский (Harlampe Colosovschi)",
-        motherName: "Мария (Maria Terzi)",
-        birthDate: "05/10/1909 Juliano (18/10/1909 Gregoriano)",
-        baptismDate: "11/10/1909",
+        childName: "Antônio",
+        fatherName: "Manuel de Albuquerque",
+        motherName: "Francisca de Almeida",
+        birthDate: "03/04/1892",
+        baptismDate: "15/04/1892",
       },
       summary:
-        "Assento paroquial de batismo de Ivan Colosovschi localizado na paróquia de Beșghioz. Filiação correspondente a Harlampe (filho de Ivan) e Maria. Data gregoriana 18/10/1909 confirmada.",
+        "Assento paroquial de batismo devidamente localizado e transcrito. Filiação confirmada: Manuel de Albuquerque e Francisca de Almeida. Data do ato: 15/04/1892.",
     });
     setError(null);
   };
@@ -115,7 +113,7 @@ Sacerdote: Священникъ Михаилъ...`,
           onClick={handleLoadSamplePage}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 transition-colors self-start cursor-pointer"
         >
-          <Sparkles className="w-3.5 h-3.5" /> Carregar Demonstração (Beșghioz 1909)
+          <Sparkles className="w-3.5 h-3.5" /> Carregar Registro Exemplo
         </button>
       </div>
 
@@ -141,10 +139,10 @@ Sacerdote: Священникъ Михаилъ...`,
                 <Upload className="w-8 h-8 text-muted-foreground" />
                 <div className="text-xs text-muted-foreground">
                   <p className="font-semibold text-foreground">
-                    Selecione uma imagem de fólio paroquial
+                    Selecione uma imagem de fólio paroquial ou registro civil
                   </p>
                   <p className="text-muted-foreground mt-0.5">
-                    Formatos suportados: JPG, PNG, WEBP
+                    Formatos suportados: JPG, PNG, WEBP (qualquer resolução)
                   </p>
                 </div>
               </>
@@ -163,46 +161,65 @@ Sacerdote: Священникъ Михаилъ...`,
               <span className="block text-foreground font-medium mb-1">Pessoa Procurada</span>
               <input
                 value={targetPerson}
+                placeholder="Ex: João, Giovanni, Ivan..."
                 onChange={(e) => setTargetPerson(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs"
+                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs placeholder:text-muted-foreground"
               />
             </div>
             <div>
               <span className="block text-foreground font-medium mb-1">Sobrenome</span>
               <input
                 value={targetSurname}
+                placeholder="Ex: Silva, Rossi, Müller..."
                 onChange={(e) => setTargetSurname(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs"
+                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs placeholder:text-muted-foreground"
               />
             </div>
             <div>
-              <span className="block text-foreground font-medium mb-1">Data Procurada</span>
+              <span className="block text-foreground font-medium mb-1">Data / Ano Estimado</span>
               <input
                 value={targetDate}
+                placeholder="Ex: 1892 ou 15/04/1892"
                 onChange={(e) => setTargetDate(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs"
+                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs placeholder:text-muted-foreground"
               />
             </div>
             <div>
-              <span className="block text-foreground font-medium mb-1">Localidade</span>
+              <span className="block text-foreground font-medium mb-1">Paróquia / Município</span>
               <input
                 value={villageName}
+                placeholder="Ex: Paróquia Matriz, Comuna..."
                 onChange={(e) => setVillageName(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs"
+                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs placeholder:text-muted-foreground"
               />
             </div>
             <div className="col-span-2">
-              <span className="block text-foreground font-medium mb-1">Idioma / Caligrafia</span>
+              <span className="block text-foreground font-medium mb-1">
+                Idioma / Tradição Paleográfica
+              </span>
               <select
                 value={language}
-                onChange={(e) =>
-                  setLanguage(e.target.value as "cyrillic_russian" | "romanian" | "general")
-                }
-                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs"
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-input text-foreground text-xs cursor-pointer"
               >
-                <option value="cyrillic_russian">Russo Cirílico Séc. XIX/XX</option>
+                <option value="universal">Universal (Auto-detectar pelo Gemini)</option>
+                <option value="portuguese">
+                  Português (Cartórios civis e paróquias brasileiras/portuguesas)
+                </option>
+                <option value="italian">
+                  Italiano (Stato Civile / Atti di Nascita, Matrimonio, Morte)
+                </option>
+                <option value="spanish">Espanhol (Registros Parroquiales y Registro Civil)</option>
+                <option value="latin">Latim Eclesiástico (Livros de Batismo e Matrimônio)</option>
+                <option value="german">Alemão (Kurrent / Fraktur / Kirchenbücher)</option>
+                <option value="french">Francês (Registres Paroissiaux et d'État Civil)</option>
+                <option value="cyrillic_russian">
+                  Russo Cirílico (Métricas Pré-Reforma / Revisões)
+                </option>
                 <option value="romanian">Romeno / Moldavo</option>
-                <option value="general">Geral</option>
+                <option value="polish">Polonês (Akta Stanu Cywilnego)</option>
+                <option value="hebrew">Hebraico / Iídiche</option>
+                <option value="english">Inglês Antigo / Britânico / Americano</option>
               </select>
             </div>
           </div>

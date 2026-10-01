@@ -101,42 +101,50 @@ export default function Home() {
         </Link>
       </section>
 
-      {/* Live Case Study: Bessarábia / Colosovschi Case Status */}
+      {/* Genea Autonomous Platform Engine Overview */}
       <section className="rounded-2xl border border-border bg-card p-6 md:p-8 text-card-foreground shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <BookOpen className="w-5 h-5 text-amber-500" />
+            <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <h3 className="font-semibold text-lg text-foreground">
-              Caso em Destaque: Linhagem Colosovschi (Beșghioz, 1909)
+              Motor Genealógico com Inteligência Artificial
             </h3>
           </div>
-          <span className="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 self-start md:self-auto font-medium">
-            DGS 005610797 • Processo 476
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 self-start md:self-auto font-medium">
+            Protocolo MCP • Gemini Multimodal • FamilySearch Tree Sync
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div className="bg-muted/40 p-4 rounded-xl border border-border">
-            <span className="text-muted-foreground block mb-1">Indivíduo Alvo</span>
-            <p className="font-semibold text-foreground text-sm">Iwan (João) Colosovschi</p>
-            <p className="text-muted-foreground mt-1">Nascimento: 18/10/1909</p>
-          </div>
-          <div className="bg-muted/40 p-4 rounded-xl border border-border">
-            <span className="text-muted-foreground block mb-1">Filiação</span>
-            <p className="font-semibold text-foreground text-sm">Harlampe Colosovschi</p>
-            <p className="text-muted-foreground mt-1">Mãe: Maria Terzi</p>
-          </div>
-          <div className="bg-muted/40 p-4 rounded-xl border border-border">
-            <span className="text-muted-foreground block mb-1">Localização Arquivística</span>
-            <p className="font-semibold text-foreground text-sm">Fundo 211, Opis 2, Дело 476</p>
-            <p className="text-muted-foreground mt-1">Paróquia São Miguel Arcanjo</p>
-          </div>
-          <div className="bg-muted/40 p-4 rounded-xl border border-border">
-            <span className="text-muted-foreground block mb-1">Status da Investigação</span>
-            <p className="font-semibold text-emerald-600 dark:text-emerald-400 text-sm">
-              Waypoints Mapeados
+            <span className="text-muted-foreground block mb-1">Pesquisa Universal</span>
+            <p className="font-semibold text-foreground text-sm">Registros & Microfilmes</p>
+            <p className="text-muted-foreground mt-1">
+              Busca federada em cartórios, paróquias e árvores globais
             </p>
-            <p className="text-muted-foreground mt-1">Folhas 327–378 (Outubro 1909)</p>
+          </div>
+          <div className="bg-muted/40 p-4 rounded-xl border border-border">
+            <span className="text-muted-foreground block mb-1">Decifrador Paleográfico</span>
+            <p className="font-semibold text-foreground text-sm">Gemini Vision Multimodal</p>
+            <p className="text-muted-foreground mt-1">
+              Transcrição em português, latim, italiano, cirílico e mais
+            </p>
+          </div>
+          <div className="bg-muted/40 p-4 rounded-xl border border-border">
+            <span className="text-muted-foreground block mb-1">Auditoria de Linhagem</span>
+            <p className="font-semibold text-foreground text-sm">Detecção Algorítmica</p>
+            <p className="text-muted-foreground mt-1">
+              Identificação de lacunas de pais e certidões ausentes
+            </p>
+          </div>
+          <div className="bg-muted/40 p-4 rounded-xl border border-border">
+            <span className="text-muted-foreground block mb-1">Padrão Probatório GPS</span>
+            <p className="font-semibold text-emerald-600 dark:text-emerald-400 text-sm">
+              Diário 100% Auditável
+            </p>
+            <p className="text-muted-foreground mt-1">
+              Citação rigorosa de fontes e correlação de evidências
+            </p>
           </div>
         </div>
       </section>

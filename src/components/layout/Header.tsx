@@ -12,6 +12,7 @@ import {
   Moon,
   Network,
   ShieldCheck,
+  Sliders,
   Sun,
   User,
 } from "lucide-react";
@@ -275,6 +276,15 @@ export function Header({ user: initialUser, onLogout }: HeaderProps) {
               >
                 <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
                 <span>MCP Server</span>
+              </DropdownMenuItem>
+
+              {/* Personalizar UI */}
+              <DropdownMenuItem
+                onClick={() => window.dispatchEvent(new CustomEvent("open-theme-customizer"))}
+                className="cursor-pointer gap-2.5 py-1.5 text-xs text-foreground hover:bg-accent"
+              >
+                <Sliders className="h-3.5 w-3.5 text-primary" />
+                <span>Personalizar UI</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="bg-border" />

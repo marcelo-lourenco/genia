@@ -1,52 +1,127 @@
 "use client";
 
-import { Eye, FileSearch, Layers, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  Camera,
+  Database,
+  Eye,
+  FileSearch,
+  FileText,
+  Layers,
+  Search,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import { ManuscriptViewer } from "@/components/genea/ManuscriptViewer";
 import { SearchForm } from "@/components/genea/SearchForm";
 import type { SearchResultPerson } from "@/services/familysearch/search";
 
+type SearchModality = "records" | "fulltext" | "images" | "tree" | "genealogies" | "vision";
+
 export default function SearchPage() {
-  const [activeTab, setActiveTab] = useState<"records" | "vision">("records");
+  const [activeTab, setActiveTab] = useState<SearchModality>("records");
   const [results, setResults] = useState<SearchResultPerson[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [_selectedPerson, setSelectedPerson] = useState<SearchResultPerson | null>(null);
 
+  // Full-text search state
+  const [fullTextQuery, setFullTextQuery] = useState("");
+  const [fullTextPlace, setFullTextPlace] = useState("");
+  const [fullTextDate, setFullTextDate] = useState("");
+
+  // DGS image search state
+  const [dgsNumber, setDgsNumber] = useState("");
+  const [imageIndex, setImageIndex] = useState("");
+
   return (
     <main className="min-h-screen p-4 sm:p-8 max-w-7xl mx-auto flex flex-col gap-8 transition-colors">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border pb-6">
         <div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> Caso de Uso 1: Busca Ativa & Multimodal
+            <Sparkles className="w-3.5 h-3.5" /> Pesquisa Universal & Agente Autônomo
           </span>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight">
-            Pesquisa & Paleografia Digital
+            Central de Pesquisa Genealógica
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm mt-1">
-            Pesquise registros indexados do FamilySearch e transcreva fólios paroquiais manuscritos
-            com o Gemini Vision
+            Explore registros mundiais do FamilySearch, texto completo por IA, microfilmes DGS e
+            decifração de manuscritos
           </p>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex items-center p-1 rounded-xl bg-muted border border-border self-start shadow-sm">
+        {/* Modalidade de Busca (Categorias Padrão FamilySearch) */}
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-muted border border-border shadow-sm">
           <button
             type="button"
             onClick={() => setActiveTab("records")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "records"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <FileSearch className="w-3.5 h-3.5" />
-            <span>Busca de Registros</span>
+            <span>Registros Históricos</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("fulltext")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "fulltext"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Texto Completo (IA)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("images")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "images"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>Imagens & DGS</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("tree")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "tree"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>Árvore Familiar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("genealogies")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "genealogies"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Livros & Genealogias</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab("vision")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "vision"
                 ? "bg-purple-600 text-white shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -58,9 +133,9 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {activeTab === "records" ? (
+      {/* Conteúdo Dinâmico por Aba */}
+      {activeTab === "records" && (
         <div className="space-y-8">
-          {/* Form Card */}
           <div className="p-6 rounded-2xl bg-card border border-border shadow-sm text-card-foreground">
             <SearchForm onResults={setResults} onSearchingChange={setIsSearching} />
           </div>
@@ -142,14 +217,295 @@ export default function SearchPage() {
             ) : (
               !isSearching && (
                 <div className="text-center py-12 border border-dashed border-border rounded-xl bg-card/50 text-muted-foreground text-xs">
-                  Nenhum registro pesquisado ainda. Preencha o formulário acima ou carregue o caso
-                  de demonstração da Bessarábia.
+                  Nenhum registro pesquisado ainda. Preencha os campos de busca acima para consultar
+                  qualquer repositório no FamilySearch.
                 </div>
               )
             )}
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* ABA 2: Texto Completo (IA) */}
+      {activeTab === "fulltext" && (
+        <div className="p-6 rounded-2xl bg-card border border-border shadow-sm text-card-foreground space-y-6">
+          <div className="flex items-center gap-3 border-b border-border pb-4">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">
+                Pesquisa em Texto Completo (Full-Text Search com IA)
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Pesquise palavras, frases, nomes de fazendas, profissões e termos em milhões de
+                documentos históricos transcritos por inteligência artificial
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <label
+                htmlFor="fulltext-terms"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Termos de Busca, Nomes ou Expressões
+              </label>
+              <input
+                id="fulltext-terms"
+                value={fullTextQuery}
+                onChange={(e) => setFullTextQuery(e.target.value)}
+                placeholder="Ex: 'Manuel da Silva' testamento 'Vila Rica' escravos"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="fulltext-place"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Local ou Jurisdição
+              </label>
+              <input
+                id="fulltext-place"
+                value={fullTextPlace}
+                onChange={(e) => setFullTextPlace(e.target.value)}
+                placeholder="Ex: Minas Gerais, Brasil ou Napoli, Italia"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="fulltext-date"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Intervalo de Anos
+              </label>
+              <input
+                id="fulltext-date"
+                value={fullTextDate}
+                onChange={(e) => setFullTextDate(e.target.value)}
+                placeholder="Ex: 1850-1920"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("records");
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-sm cursor-pointer"
+            >
+              <Search className="w-4 h-4" />
+              <span>Executar Busca em Texto Completo</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ABA 3: Imagens & DGS */}
+      {activeTab === "images" && (
+        <div className="p-6 rounded-2xl bg-card border border-border shadow-sm text-card-foreground space-y-6">
+          <div className="flex items-center gap-3 border-b border-border pb-4">
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Camera className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">
+                Navegador de Imagens Históricas & Microfilmes (DGS)
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Acesse rolos de microfilmes digitalizados diretamente pelo número do Grupo de
+                Imagens (DGS) ou número do filme físico
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label
+                htmlFor="dgs-num"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Número do DGS (Digital Film Group)
+              </label>
+              <input
+                id="dgs-num"
+                value={dgsNumber}
+                onChange={(e) => setDgsNumber(e.target.value)}
+                placeholder="Ex: 005610797, 007963214..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="img-num"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Imagem ou Fólio Específico (Opcional)
+              </label>
+              <input
+                id="img-num"
+                value={imageIndex}
+                onChange={(e) => setImageIndex(e.target.value)}
+                placeholder="Ex: 1, 42, 342..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-sm cursor-pointer"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Carregar Fólios do DGS</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/40 border border-border text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground">Dica de Pesquisa:</strong> Muitos registros
+            arquivísticos (como livros paroquiais católicos ou livros civis) ainda não foram
+            indexados nome a nome no FamilySearch, mas estão disponíveis como imagens digitais
+            pesquisáveis fólio a fólio. Utilize a ferramenta <strong>Paleografia Vision</strong>{" "}
+            para transcrever qualquer imagem que encontrar.
+          </div>
+        </div>
+      )}
+
+      {/* ABA 4: Árvore Familiar */}
+      {activeTab === "tree" && (
+        <div className="p-6 rounded-2xl bg-card border border-border shadow-sm text-card-foreground space-y-6">
+          <div className="flex items-center gap-3 border-b border-border pb-4">
+            <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">
+                Busca de Pessoas na Árvore Familiar Compartilhada
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Pesquise entre mais de 1,4 bilhão de pessoas cadastradas na Árvore Familiar global
+                do FamilySearch
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="tree-person-name"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Nome da Pessoa
+              </label>
+              <input
+                id="tree-person-name"
+                placeholder="Ex: João da Silva"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="tree-person-id"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Ou ID do Indivíduo (Identificador FamilySearch)
+              </label>
+              <input
+                id="tree-person-id"
+                placeholder="Ex: GYT8-36P ou KWQS-BB1"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <a
+              href="/my-tree"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-sm"
+            >
+              <Users className="w-4 h-4" />
+              <span>Explorar no Gráfico de Linhagem & Pedigree</span>
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* ABA 5: Genealogias & Livros */}
+      {activeTab === "genealogies" && (
+        <div className="p-6 rounded-2xl bg-card border border-border shadow-sm text-card-foreground space-y-6">
+          <div className="flex items-center gap-3 border-b border-border pb-4">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">
+                Biblioteca Digital, Catálogo & Cemitérios
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Acesse mais de 500.000 livros de história da família, compêndios genealógicos
+                publicados, anuários e registros de cemitérios
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="catalog-title"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Título do Livro ou Família / Sobrenome
+              </label>
+              <input
+                id="catalog-title"
+                placeholder="Ex: Nobiliário de Famílias de Portugal, Família Souza..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="catalog-author"
+                className="block text-xs font-semibold text-foreground mb-1.5"
+              >
+                Autor ou Localidade de Publicação
+              </label>
+              <input
+                id="catalog-author"
+                placeholder="Ex: Felgueiras Gayo, Rio de Janeiro..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-input text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/40 border border-border flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              Integrado com o catálogo aberto do FamilySearch Digital Library & Internet Archive.
+            </span>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-semibold border border-border cursor-pointer"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>Consultar Catálogo</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ABA 6: Paleografia Vision */}
+      {activeTab === "vision" && (
         <div className="p-6 rounded-2xl bg-card border border-border shadow-sm text-card-foreground">
           <ManuscriptViewer />
         </div>
