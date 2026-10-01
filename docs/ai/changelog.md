@@ -168,3 +168,7 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
   - Atualizado `src/services/familysearch/user.ts` para mapear `user.personId` e extrair o ID real da pessoa em `user.links.person.href`.
   - Atualizado `src/services/familysearch/tree.ts` com tratamento amigável de erro HTTP 410 e suporte completo a cônjuge (`ascendancyNumber === "1-S"`).
   - Árvore familiar agora renderiza com sucesso em tempo real todos os ancestrais e cônjuges diretamente da API do FamilySearch.
+- **Auditoria Dinâmica do Usuário Logado (`/audit`):**
+  - Eliminação do ID fictício `KWQS-BB1` que disparava erro `HTTP 403 Forbidden` (registro em espaço privado/restrito).
+  - Componente `TreeAuditView.tsx` agora obtém o perfil autenticado (`/api/auth/profile`) ao carregar e preenche automaticamente o campo com o ID canônico da pessoa logada no FamilySearch.
+  - Execução automática da auditoria genealógica sobre a linhagem do usuário conectado, detectando lacunas e habilitando diagnóstico estratégico com IA sem qualquer erro.

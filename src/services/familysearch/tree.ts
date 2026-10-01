@@ -38,10 +38,17 @@ export async function getTreeAncestors(
       `/platform/tree/ancestry?person=${personId}&generations=${generations}`,
     );
   } catch (error) {
-    if (error instanceof FamilySearchApiError && error.status === 410) {
-      throw new Error(
-        `O identificador "${personId}" não é uma pessoa válida na Árvore Familiar ou foi excluído/mesclado no FamilySearch (HTTP 410 Gone).`,
-      );
+    if (error instanceof FamilySearchApiError) {
+      if (error.status === 410) {
+        throw new Error(
+          `O identificador "${personId}" não é uma pessoa válida na Árvore Familiar ou foi excluído/mesclado no FamilySearch (HTTP 410 Gone).`,
+        );
+      }
+      if (error.status === 403) {
+        throw new Error(
+          `O identificador "${personId}" pertence a um registro restrito ou espaço privado no FamilySearch e não pôde ser acessado (HTTP 403 Forbidden).`,
+        );
+      }
     }
     throw error;
   }

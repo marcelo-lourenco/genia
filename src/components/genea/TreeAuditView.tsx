@@ -13,7 +13,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { TreeAncestryAuditResult } from "@/services/familysearch/tree";
 
 interface TreeAuditViewProps {
@@ -21,7 +21,8 @@ interface TreeAuditViewProps {
 }
 
 export function TreeAuditView({ initialData }: TreeAuditViewProps) {
-  const [personId, setPersonId] = useState("KWQS-BB1");
+  const [personId, setPersonId] = useState("");
+  const [userProfile, setUserProfile] = useState<{ personId?: string; name?: string } | null>(null);
   const [searchNameQuery, setSearchNameQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string }>>([]);
   const [isSearchingPersons, setIsSearchingPersons] = useState(false);
@@ -34,43 +35,60 @@ export function TreeAuditView({ initialData }: TreeAuditViewProps) {
   const [isGeneratingAiDiagnosis, setIsGeneratingAiDiagnosis] = useState(false);
   const [aiDiagnosis, setAiDiagnosis] = useState<string | null>(null);
 
-  // Auto-load on mount if no initialData
-  // biome-ignore lint/correctness/useExhaustiveDependencies: initial load on mount
-  useEffect(() => {
-    if (!initialData && personId) {
-      handleAudit(personId);
-    }
-  }, [initialData]);
+  const handleAudit = useCallback(
+    async (targetId = personId) => {
+      if (!targetId.trim()) return;
+      setIsLoading(true);
+      setError(null);
+      setAiDiagnosis(null);
 
-  const handleAudit = async (targetId = personId) => {
-    if (!targetId.trim()) return;
-    setIsLoading(true);
-    setError(null);
-    setAiDiagnosis(null);
+      try {
+        const response = await fetch("/api/mcp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tool: "get_tree_ancestors",
+            arguments: { personId: targetId.trim(), generations },
+          }),
+        });
 
-    try {
-      const response = await fetch("/api/mcp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tool: "get_tree_ancestors",
-          arguments: { personId: targetId.trim(), generations },
-        }),
-      });
-
-      const resData = await response.json();
-      if (resData.success && resData.result) {
-        setAuditData(resData.result);
-      } else {
-        throw new Error(resData.error || "Não foi possível carregar a árvore para este ID.");
+        const resData = await response.json();
+        if (resData.success && resData.result) {
+          setAuditData(resData.result);
+        } else {
+          throw new Error(resData.error || "Não foi possível carregar a árvore para este ID.");
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Falha ao auditar árvore";
+        setError(msg);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Falha ao auditar árvore";
-      setError(msg);
-    } finally {
-      setIsLoading(false);
+    },
+    [generations, personId],
+  );
+
+  // Auto-load authenticated user tree on mount if no initialData
+  useEffect(() => {
+    async function init() {
+      if (initialData) return;
+      try {
+        const res = await fetch("/api/auth/profile");
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          setUserProfile(data.user);
+          const activeId = data.user.personId || data.user.treeUserId || "";
+          if (activeId) {
+            setPersonId(activeId);
+            handleAudit(activeId);
+          }
+        }
+      } catch {
+        // Not authenticated
+      }
     }
-  };
+    init();
+  }, [initialData, handleAudit]);
 
   const handleSearchPersonByName = async () => {
     if (!searchNameQuery.trim()) return;
@@ -199,16 +217,21 @@ export function TreeAuditView({ initialData }: TreeAuditViewProps) {
 
           {/* Quick shortcuts */}
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setPersonId("KWQS-BB1");
-                handleAudit("KWQS-BB1");
-              }}
-              className="px-3 py-1.5 rounded-lg text-2xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer transition-colors"
-            >
-              Exemplo Raiz (KWQS-BB1)
-            </button>
+            {userProfile?.personId && (
+              <button
+                type="button"
+                onClick={() => {
+                  const pid = userProfile.personId;
+                  if (pid) {
+                    setPersonId(pid);
+                    handleAudit(pid);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-lg text-2xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 cursor-pointer transition-colors"
+              >
+                Auditar Minha Árvore ({userProfile.personId})
+              </button>
+            )}
           </div>
         </div>
 
