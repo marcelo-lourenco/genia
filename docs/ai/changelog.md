@@ -175,3 +175,34 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
 - **Resiliência contra HTTP 503 (High Demand) na IA Gemini (`/api/audit/diagnosis`):**
   - Implementada cascata de modelos de IA (`gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-flash-lite-latest`) para mitigar sobrecargas momentâneas nos servidores da Google ("This model is currently experiencing high demand").
   - Em caso de indisponibilidade ou instabilidade em um modelo, o sistema faz o failover automático e transparente para a próxima variante, garantindo a geração contínua do Diagnóstico Estratégico GPS.
+
+---
+
+## [Fase 9] - 2026-10-01
+### Adicionado
+- **Estação de Trabalho Paleográfica & Decifrador Multimodal (`/search` & `ManuscriptViewer.tsx`):**
+  - Canvas interativo com zoom suave (70% a 400%), pan por arraste com o mouse e rotação fina de 90° a 360°.
+  - Controles de tratamento de imagem em tempo real: Sliders de Brilho (50% a 180%), Contraste (50% a 220%) e **Modo Negativo / Inversão de Cores (DGS)** para leitura de microfilmes históricos escurecidos ou de baixa nitidez.
+  - Abas de análise com transição instantânea: *Original Diplomático*, *Tradução em Português Moderno* (para certidões em latim, cirílico, italiano ou alemão) e *Entidades GPS* (tipo de registro, data, local, filiação, testemunhas e vigário).
+  - Ação integrada *"Vincular ao Diário de Pesquisa"*: gravação direta do fólio transcrito em `/api/research-log` com feedback imediato e atalho para navegação.
+  - Cascata de resiliência a 503 integrada no decifrador visual Gemini em `src/ai/gemini/vision.ts`.
+- **GENIA Copilot Conversacional (Drawer Lateral Global & Atalho `Ctrl+J`):**
+  - Implementação de `CopilotDrawer.tsx` montado no `RootLayout` (`layout.tsx`), acessível a partir de qualquer tela da aplicação via botão flutuante e atalho de teclado global `Ctrl + J` (ou `Cmd + J`).
+  - Endpoint de conversação com IA `/api/chat` dotado de cascata de modelos (`gemini-3.5-flash` -> `gemini-3.5-flash-lite` -> `gemini-flash-lite-latest`).
+  - Consciência de contexto dinâmico (*Context-Awareness*): detecta a rota ativa (`/my-tree`, `/audit`, `/search`, etc.) e informa a persona do copiloto.
+  - Sugestões rápidas de pesquisa genealógica (superação de *brick walls*, Padrão GPS, busca em acervos de Portugal/Itália/Brasil, latim eclesiástico e desembarque de imigrantes).
+- **Agente de Investigação Autônoma de Ponta a Ponta (`/audit` & `InvestigationModal.tsx`):**
+  - Adicionado botão *"Investigação Autônoma GPS"* em cada lacuna detectada na árvore do usuário.
+  - Endpoint da máquina de raciocínio probatório `/api/agent/investigate`: executa a cadeia probatória completa do Genealogical Proof Standard (GPS).
+  - Modal com timeline animada de 5 etapas:
+    1. Delimitação da lacuna e extração de contexto.
+    2. Mapeamento de cartórios, paróquias e acervos competentes.
+    3. Geração de variantes onomásticas e roteiro de busca em 3 passos.
+    4. Síntese probatória GPS com cálculo de confiança.
+    5. Gravação automática e persistente da hipótese no Diário de Pesquisa (`/research-log`).
+  - Ações diretas no modal para abrir a entrada no Diário GPS ou realizar busca manual.
+- **Conformidade de Qualidade & Testes:**
+  - 100% de conformidade com o BiomeJS (`0 erros` em 74 arquivos).
+  - 26/26 testes unitários passando (`pnpm test:unit`).
+  - Validação ponta a ponta com subagente de browser no ambiente ativo.
+

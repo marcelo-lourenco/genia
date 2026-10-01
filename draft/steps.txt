@@ -1,0 +1,10 @@
+Navegue para http://localhost:3000/search.
+1. Clique na aba 'Paleografia Vision (IA)'.
+2. Verifique os controles de imagem: Modo Negativo, Brilho, Contraste, Zoom e Rotação.
+3. Clique no botão 'Carregar Demonstração Paleográfica'.
+4. Teste a alternância das abas de resultado: 'Original Diplomático', 'Tradução em Português' e 'Entidades GPS'.
+5. Clique no botão 'Vincular ao Diário de Pesquisa' e verifique a confirmação 'Salvo no Diário GPS!'.
+6. Navegue para http://localhost:3000/audit e verifique as lacunas da árvore. Clique no botão 'Investigação Autônoma GPS' em uma das lacunas para abrir o modal do agente com a timeline de 5 passos.
+7. Feche o modal e clique no botão flutuante 'Copiloto IA' (canto inferior direito) para abrir o chat lateral do GENIA Copilot.
+8. Envie uma mensagem rápida como 'Olá, como você pode me ajudar na auditoria?' e veja a resposta do copiloto.
+9. Tire capturas de tela finais e reporte os resultados.

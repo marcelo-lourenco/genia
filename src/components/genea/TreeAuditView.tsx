@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   BrainCircuit,
   CheckCircle,
-  ChevronRight,
   Compass,
   FileSearch,
   Loader2,
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { TreeAncestryAuditResult } from "@/services/familysearch/tree";
+import { type InvestigationGap, InvestigationModal } from "./InvestigationModal";
 
 interface TreeAuditViewProps {
   initialData?: TreeAncestryAuditResult;
@@ -34,6 +34,11 @@ export function TreeAuditView({ initialData }: TreeAuditViewProps) {
   // AI Diagnosis state
   const [isGeneratingAiDiagnosis, setIsGeneratingAiDiagnosis] = useState(false);
   const [aiDiagnosis, setAiDiagnosis] = useState<string | null>(null);
+
+  // Autonomous Investigation Modal state
+  const [selectedInvestigationGap, setSelectedInvestigationGap] = useState<InvestigationGap | null>(
+    null,
+  );
 
   const handleAudit = useCallback(
     async (targetId = personId) => {
@@ -476,14 +481,23 @@ export function TreeAuditView({ initialData }: TreeAuditViewProps) {
                       {gap.suggestedAction}
                     </p>
 
-                    <a
-                      href={`/search?surname=${encodeURIComponent(surname)}`}
-                      className="inline-flex items-center justify-center gap-1 w-full py-2 rounded-lg bg-card hover:bg-muted/80 border border-border text-primary text-xs font-semibold transition-colors shadow-xs"
-                    >
-                      <FileSearch className="w-3.5 h-3.5" />
-                      <span>Investigar Lacuna na Busca</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </a>
+                    <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedInvestigationGap(gap)}
+                        className="inline-flex items-center justify-center gap-1.5 w-full sm:flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Investigação Autônoma GPS</span>
+                      </button>
+                      <a
+                        href={`/search?surname=${encodeURIComponent(surname)}`}
+                        className="inline-flex items-center justify-center gap-1 w-full sm:w-auto px-3 py-2 rounded-lg bg-card hover:bg-muted border border-border text-foreground text-xs font-medium transition-colors"
+                      >
+                        <FileSearch className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span>Busca Manual</span>
+                      </a>
+                    </div>
                   </div>
                 );
               })}
@@ -491,6 +505,14 @@ export function TreeAuditView({ initialData }: TreeAuditViewProps) {
           </div>
         </div>
       )}
+
+      {/* Autonomous Investigation Modal */}
+      <InvestigationModal
+        gap={selectedInvestigationGap}
+        rootPersonName={auditData?.rootPersonName}
+        isOpen={!!selectedInvestigationGap}
+        onClose={() => setSelectedInvestigationGap(null)}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CopilotDrawer } from "@/components/chat/CopilotDrawer";
 import { Header } from "@/components/layout/Header";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -43,6 +44,7 @@ export default async function RootLayout({
           <Header user={userProfile} />
           <div className="flex-1">{children}</div>
           <ThemeCustomizer />
+          <CopilotDrawer />
         </ThemeProvider>
       </body>
     </html>

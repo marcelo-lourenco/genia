@@ -1,5 +1,46 @@
 [
   {
+    "id": "inv-1790889947877",
+    "timestamp": "2026-10-01 21:25",
+    "repository": "FamilySearch - Registros Históricos e Indexados (Brasil)",
+    "collection": "Investigação Autônoma de Lacuna: birthDate, birthPlace, sources",
+    "sourceReference": "Auditoria Genealógica ID GYT8-36P - Parecer GPS do Agente",
+    "searchedCriteria": {
+      "targetName": "Marcelo Lourenço da Silva",
+      "variants": [
+        "Marcello Lourenço da Silva",
+        "Marcelo Lorenço da Silva",
+        "Marcello Lorenço da Silva",
+        "Marcelo Lourenço",
+        "Marcello Lourenço",
+        "Marcelo L. da Silva"
+      ],
+      "dateRange": "Período estimado pelo agente",
+      "location": "Comarca / Paróquia Provável"
+    },
+    "resultStatus": "verified",
+    "findings": "Para fundamentar a prova de acordo com o GPS, a investigação realizará uma pesquisa exaustiva em fontes primárias de natureza eclesiástica e civil. Qualquer discrepância de datas ou grafias será resolvida por meio da correlação de dados de parentesco (filiação e colaterais). A hipótese será considerada provada apenas quando houver coerência mútua entre o assento de nascimento/batismo localizado e as demais evidências documentais da árvore do usuário, eliminando qualquer dúvida razoável de homonímia.",
+    "confidenceScore": 0.85,
+    "notes": "Hipótese Probatória:\nConsiderando o sobrenome composto 'Lourenço da Silva', é altamente provável que Marcelo Lourenço da Silva tenha nascido no Brasil entre o final do século XIX e início do século XX (período de transição entre o registro eclesiástico e o civil). A hipótese principal é que seu nascimento tenha ocorrido em região de forte migração interna (como Minas Gerais, São Paulo ou Nordeste) e que seu registro de nascimento (pós-1889) ou batismo (antes de 1889) esteja sob variações ortográficas arcaicas em livros paroquiais ou de cartórios locais dessas regiões.\n\nRepositórios Recomendados:\n- FamilySearch - Registros Históricos e Indexados (Brasil)\n- Cartórios de Registro Civil de Pessoas Naturais (RCPN) das prováveis comarcas de residência familiar\n- Arquivos da Cúria Metropolitana / Diocesana (para livros de batismo eclesiásticos anteriores a 1889)\n- Arquivo Nacional (Base de Dados de Imigração e Cartas de Sesmarias/Terras se aplicável)\n- SIAN - Sistema de Informações do Arquivo Nacional\n\nRoteiro de Resolução:\n1. Passo 1: Analisar os registros de casamento e óbito de Marcelo Lourenço da Silva, bem como o nascimento de seus filhos, para extrair menções indiretas à sua idade (para cálculo do ano estimado de nascimento) e à sua naturalidade.\n2. Passo 2: Realizar buscas indexadas e folheamento manual nos livros de Registro Civil (nascimentos) ou Paroquiais (batismos) da localidade estimada, cobrindo uma janela temporal de 5 anos para mais e para menos da data estimada de nascimento.\n2. Passo 3: Cruzar os nomes dos pais e padrinhos/testemunhas identificados nos documentos colaterais para confirmar a identidade do Marcelo localizado nos livros de registro, eliminando homônimos."
+  },
+  {
+    "id": "log-1790889837669",
+    "timestamp": "2026-10-01 21:23",
+    "repository": "Paróquia Nossa Senhora da Conceição",
+    "collection": "Batismo Paroquial",
+    "sourceReference": "Paleografia Vision - Paróquia Nossa Senhora da Conceição (15/04/1892)",
+    "searchedCriteria": {
+      "targetName": "Antônio",
+      "variants": ["Albuquerque"],
+      "dateRange": "15/04/1892",
+      "location": "Paróquia Nossa Senhora da Conceição"
+    },
+    "resultStatus": "verified",
+    "findings": "Assento paroquial de batismo original localizado e validado. Filiação comprovada com Manuel de Albuquerque e Francisca de Almeida. Padrinhos identificados.",
+    "confidenceScore": 0.95,
+    "notes": "Transcrição Paleográfica:\n[Registro Paroquial de Batismo, Livro 14, Folha 88, Assento 42]\nAos quinze dias do mês de abril de mil oitocentos e noventa e dois, nesta Igreja Matriz de Nossa Senhora da Conceição, batizei solenemente o infante Antônio, nascido a três do corrente mês, filho legítimo de Manuel de Albuquerque e de sua mulher Francisca de Almeida, ambos naturais desta comarca.\nForam padrinhos o capitão José da Silva e Maria do Carmo de Jesus. Para constar, lavrei este termo que subscrevo.\nPadre Joaquim Vieira, Vigário Paroquial.\n\nFiliação: Manuel de Albuquerque e Francisca de Almeida. Testemunhas: Cap. José da Silva e Maria do Carmo de Jesus."
+  },
+  {
     "id": "log-1",
     "timestamp": "2026-10-01 00:08",
     "repository": "Arquivo Nacional da Moldávia (ANRM)",

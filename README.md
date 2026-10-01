@@ -16,22 +16,32 @@ A plataforma opera com base nos 5 critérios fundamentais do **Genealogical Proo
 
 ## 🌟 Funcionalidades Principais
 
-1. **Pesquisa Universal & Paleografia Multimodal (`/search`):**
-   - Estruturação em 6 modalidades alinhadas ao FamilySearch: *Registros Históricos*, *Texto Completo (IA)*, *Imagens & DGS*, *Árvore Familiar*, *Livros & Genealogias* e *Paleografia Vision*.
-   - Formulário avançado com dezenas de campos colapsáveis (Identificação, Nascimentos, Batismos, Casamentos, Óbitos, Pais, Cônjuge, Parâmetros DGS/Filme e Idioma).
-   - Suporte universal a idiomas no decifrador multimodal Gemini (Português, Italiano, Espanhol, Latim, Alemão, Russo Cirílico, Romeno, Francês, Polonês, Hebraico e Auto-detecção).
+1. **Estação Paleográfica & Decifrador Multimodal (`/search`):**
+   - Canvas de alta resolução com zoom suave (70% a 400%), pan por arraste, rotação e tratamento de imagem ao vivo (brilho, contraste e **Modo Negativo DGS** para microfilmes).
+   - Abas de análise com transição instantânea: *Original Diplomático*, *Tradução em Português Moderno* (para certidões em latim, cirílico, italiano ou alemão) e *Entidades GPS*.
+   - Ação direta *"Vincular ao Diário de Pesquisa"* com integração em 1 clique para `/research-log`.
 
-2. **Minha Árvore Genealógica Pedigree (`/my-tree`):**
+2. **GENIA Copilot Conversacional (Global & Atalho `Ctrl+J`):**
+   - Assistente IA lateral flutuante acessível em todas as telas com atalho `Ctrl + J` (ou `Cmd + J`).
+   - Consciência de contexto dinâmico (*Context-Awareness*): detecta a tela ativa e a pessoa em foco.
+   - Orientação em tempo real para superação de *brick walls*, solicitação de certidões em cartórios/arquivos e aplicação do GPS.
+
+3. **Agente de Investigação Autônoma GPS de Ponta a Ponta (`/audit`):**
+   - Disparo autônomo com 1 clique diretamente nas lacunas da árvore familiar.
+   - Timeline de raciocínio probatório em 5 passos (delimitação, acervos competentes, variantes onomásticas, síntese GPS e cálculo de confiança).
+   - Gravação automática e persistente da hipótese no Diário de Pesquisa (`src/data/research-log.json`).
+
+4. **Minha Árvore Genealógica Pedigree (`/my-tree`):**
    - Gráfico interativo nos padrões oficiais do FamilySearch cobrindo 3 a 4 gerações (Raiz, Cônjuge, Pais e 4 Avós).
    - Exibição de Tree IDs, datas vitais, marcadores de gênero e links diretos para o portal oficial.
 
-3. **Auditoria & Diagnóstico Estratégico com IA (`/audit`):**
+5. **Auditoria & Diagnóstico Estratégico com IA (`/audit`):**
    - Busca e seleção de pessoas em tempo real por nome ou Tree ID integrada à API do FamilySearch.
    - Detecção algorítmica de lacunas (gaps) na linhagem (falta de data de nascimento, filiação ou fontes).
    - **Diagnóstico com IA (Gemini 3.5 Flash)**: Análise inteligente das lacunas e geração de roteiro de investigação GPS em 3 passos com priorização de certidões arquivísticas.
-   - Ação direta em cada lacuna para transitar diretamente à busca com os filtros pré-preenchidos.
+   - Cascata de resiliência contra instabilidade HTTP 503 (`gemini-3.5-flash` -> `gemini-3.5-flash-lite` -> `gemini-flash-lite-latest`).
 
-4. **Diário de Pesquisa Persistente GPS (`/research-log`):**
+6. **Diário de Pesquisa Persistente GPS (`/research-log`):**
    - Armazenamento em arquivo local JSON (`src/data/research-log.json`) com API REST dedicada (`/api/research-log` com GET, POST e DELETE).
    - Modal interativo para registro de investigações com citação de fontes, DGS, evidências, status probatório e cálculo de confiança.
    - Filtros dinâmicos e exportação direta em **Markdown** nos padrões acadêmicos do GPS.
