@@ -1,0 +1,127 @@
+# Changelog do Projeto (changelog.md)
+
+Todas as mudanças relevantes e entregas de cada fase serão registradas neste documento.
+
+---
+
+## [Fase 1] - 2026-09-30
+### Adicionado
+- Estrutura base de pastas seguindo Clean Architecture (`src/`, `docs/ai/`, `tests/`).
+- Configuração do `package.json` com `pnpm@12.6.0`, Node `>=24.21.0`, Next.js `16.3.6`, React `19.3.0` e TypeScript `^7.0.2`.
+- Configuração do **BiomeJS 2.5.14** como linter e formatador unificado (`biome.json`), sem ESLint nem Prettier.
+- Configuração de build Cloudflare Workers/Pages via `@opennextjs/cloudflare` e `wrangler.jsonc`.
+- Configuração do Tailwind CSS v4 e base do shadcn/ui (`components.json`).
+- Template de segurança `.env.example` e módulo de validação de ambiente com schemas Zod.
+- Documentação Viva em `/docs/ai/`:
+  - `agents.md`: Definição da persona do agente e diretrizes do Genealogical Proof Standard (GPS).
+  - `rules.md`: Regras de estilo de código, testes e tratamento de erros.
+  - `skills.md`: Especificação técnica das ferramentas MCP.
+  - `FAMILYSEARCH_API.md`: Mapeamento de endpoints e estrutura do padrão GEDCOM X.
+- Estratégia de testes configurada com Node.js Test Runner (`node:test`) para unitários e Playwright para UI/E2E.
+
+---
+
+## [Fase 2] - 2026-10-01
+### Adicionado
+- **Fluxo OAuth2 PKCE com FamilySearch:**
+  - Gerador de pares PKCE criptográficos (`code_verifier` e `code_challenge` SHA-256 base64url).
+  - Suporte comutável entre os ambientes **Sandbox** (`identbeta.familysearch.org`) e **Produção** (`ident.familysearch.org`).
+  - Troca de código de autorização por tokens (`access_token`, `refresh_token`).
+  - Renovação automática de token expirado com rotação de refresh token (`refreshAccessToken`).
+- **Gerenciador de Sessão Blindado (`src/services/storage/session.ts`):**
+  - Armazenamento em cookies HTTP-only encriptados ponta a ponta com **AES-256-GCM** via `node:crypto`.
+  - Zero exposição de credenciais ou tokens no client-side.
+- **Cliente HTTP Resiliente (`src/services/familysearch/client.ts`):**
+  - Interceptador automático de autorização Bearer e formato `application/x-gedcomx-v1+json`.
+  - Gestão de **Rate Limiting (HTTP 429)** com *Exponential Backoff* e Jitter aleatório (até 3 tentativas).
+  - Tratamento proativo de `HTTP 401 Unauthorized` com tentativa de renovação de token e replay transparente.
+- **Route Handlers de Autenticação (`src/app/api/auth/`):**
+  - `/api/auth/login`: Inicializa PKCE e redireciona ao portal FamilySearch.
+  - `/api/auth/callback`: Trata o retorno do código, executa troca de tokens e cria sessão segura.
+  - `/api/auth/session`: Endpoint de consulta de status de autenticação e expiração.
+  - `/api/auth/logout`: Revogação e limpeza segura de cookies de sessão.
+- **Serviço de Perfil de Usuário (`src/services/familysearch/user.ts`):**
+  - Consulta do perfil autenticado em `/platform/users/current`.
+- **Testes Unitários da Fase 2:**
+  - `tests/unit/oauth.test.ts`: Valida PKCE, construção de URL OAuth2, resolução de ambientes e criptografia AES-256-GCM.
+  - `tests/unit/client.test.ts`: Valida cálculo e limites do algoritmo de Exponential Backoff.
+  - 100% de aprovação (7/7 testes passando) com o Node.js Test Runner.
+
+---
+
+## [Fase 3] - 2026-10-01
+### Adicionado
+- **Serviços de Árvore e Registros do FamilySearch (`src/services/familysearch/`):**
+  - `search.ts`: Busca avançada no FamilySearch (`/platform/tree/search`) com suporte a nomes, variantes, datas, locais e nomes de pais.
+  - `person.ts`: Recuperação detalhada de fichas genealógicas GEDCOM X (`/platform/tree/persons/{personId}`).
+  - `tree.ts`: Navegação recursiva em árvore ascendente (`/platform/tree/ancestry`) com detecção automatizada de lacunas/buracos na árvore.
+  - `dgs.ts`: Resolução de metadados, processos arquivísticos (Delo/Opis/Fond) e waypoints de microfilmes DGS (`/platform/records/images/waypoints`).
+- **Servidor e Ferramentas do Model Context Protocol (MCP) (`src/ai/mcp/`):**
+  - Integração do `@modelcontextprotocol/sdk` (v1.31.0) com inicialização de servidor MCP.
+  - Implementação das ferramentas: `search_persons`, `get_tree_ancestors`, `get_dgs_waypoints` e `analyze_manuscript_image`.
+  - Endpoint de transporte HTTP JSON para clientes MCP em `/api/mcp`.
+- **Testes Unitários da Fase 3:**
+  - `tests/unit/mcp.test.ts`: Validação de registro de ferramentas e schemas Zod.
+  - 100% de aprovação (10/10 testes passando).
+
+---
+
+## [Fase 4] - 2026-10-01
+### Adicionado
+- **Interface e Casos de Uso Core da Aplicação:**
+  - `/search`: Busca Ativa com formulário Zod e visualizador paleográfico Gemini Vision.
+  - `/audit`: Auditoria de Árvore com detecção de lacunas e recomendação probatória.
+  - `/research-log`: Diário de Pesquisa auditável GPS com filtros e exportação Markdown.
+- **Prompts Especializados Gemini Vision (`src/ai/gemini/prompts.ts`):**
+  - Regras paleográficas para registros paroquiais cirílicos do século XIX/XX e romenos.
+  - Instruções de reconciliação de dados genealógicos para o Diário GPS.
+
+---
+
+## [Fase 5] - 2026-10-01
+### Adicionado
+- **Parser de Manifestos de Catálogo e Filmes (`src/services/scraper/html-parser.ts`):**
+  - Extração de alta velocidade de números de DGS, títulos de filmes paroquiais e segmentação arquivística por processos (Дело / Delo, Опись / Opis, Фонд / Fond).
+- **Extrator Headless com Playwright (`src/services/scraper/playwright-viewer.ts`):**
+  - Captura automatizada de fólios de microfilmes históricos do visualizador digital do FamilySearch.
+- **Gerenciador de Fallback Inteligente (`src/services/scraper/fallback-manager.ts`):**
+  - Orquestração híbrida de extração com fallback transparente via Playwright.
+
+---
+
+## [Fase 6] - 2026-10-01
+### Adicionado
+- **Módulo de Proximidade Fonética e Transliteração Cirílico-Latim (`src/lib/phonetic.ts`):**
+  - Transliteração completa de russo cirílico arcaico e moderno (ѣ, і, ѳ) para latim.
+  - Normalizador de sufixos patronímicos e variações ortográficas eslavas.
+  - Russell Soundex e cálculo de distância de Levenshtein.
+- **Sessão Híbrida Direta:**
+  - Leitura das credenciais no `.env` e persistência de sessão ativa via token bearer.
+
+---
+
+## [Fase 7] - 2026-10-01
+### Adicionado / Refatorado
+- **Identidade Visual e Branding GENIA:**
+  - Logotipo oficial **GENIA** com tipografia uniforme (`text-2xl font-black tracking-tight`), mantendo distinção de cor entre `GEN` (cor neutra) e `IA` (azul vibrante) com kerning uniforme.
+  - Ícone oficial: `Network` do `lucide-react` com rotação de 180° (`rotate-180`), simbolizando as ramificações de ascendência genealógica.
+- **Design System shadcn/ui & Correção de Contraste (Tailwind CSS v4):**
+  - Inclusão mandatória de `@custom-variant dark (&:is(.dark, .dark *));` e `@theme inline` no `globals.css` para funcionamento pleno da alternância de tema no Next.js.
+  - Tema **Light** definido como padrão inicial (`defaultTheme="light"`).
+  - Adoção integral de design tokens semânticos (`text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`, `bg-background`).
+  - Resolução de contraste: eliminação de títulos brancos em fundos claros e containers escuros flutuantes em páginas claras.
+- **Autenticação Modal shadcn (`login-03` / `login-04`) & Sessão Fluida:**
+  - O botão *"Entrar no GENIA"* no Header abre um modal `Dialog` centralizado com o formulário padrão shadcn `LoginForm`.
+  - Endpoint `/api/auth/token-login` conecta a sessão e `/api/auth/profile` fornece dados dinâmicos do perfil FamilySearch.
+  - Indicador de presença ativo (bolinha verde `bg-emerald-500`) posicionado no canto superior direito do Avatar (`top-0 right-0`).
+  - Remoção de poluição visual na Home (status da sessão transferido exclusivamente para o Avatar e menu de perfil).
+  - Menu dropdown exibindo Nome, Usuário (@username) e crachá de Ambiente (`PRODUCTION`).
+- **Gráfico de Pedigree Familiar (`/my-tree`):**
+  - Gráfico de ascendência interativo de 3 a 4 gerações (Raiz, Cônjuge, Pais e Avós) com padrão visual do FamilySearch, Tree IDs e links diretos.
+- **Documentação de Engenharia e Agentes de IA:**
+  - Criação do `README.md` completo para desenvolvedores humanos.
+  - Atualização de `docs/ai/agents.md`, `docs/ai/rules.md` e `docs/ai/skills.md`.
+  - Criação do `prompt-modelo.md` como especificação mestre reutilizável.
+- **Qualidade & Testes:**
+  - 26/26 testes unitários passando.
+  - Biome JS com 0 erros em 64 arquivos.
