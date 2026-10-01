@@ -67,3 +67,11 @@
   pnpm test:unit
   ```
 * **Mocks de API:** Chamadas de rede da API do FamilySearch e do Gemini Vision devem ser mockadas nos testes unitários para garantir execução rápida, idempotente e sem consumo de cotas de produção.
+
+---
+
+## 7. Padrão Obrigatório de Mensagem de Commit ao Final de Cada Implementação
+* **Geração Automática de Commit:** Ao concluir qualquer implementação, correção ou refatoração, o agente de IA deve **obrigatoriamente** fornecer ao final de sua resposta a mensagem de commit correspondente.
+* **Formato Estrito (Apenas Texto Puro):**
+  - A mensagem de commit deve ser entregue **sempre como texto puro**, sem comandos git externos (proibido incluir `git add .` ou `git commit -m "..."`).
+  - Padrão **Conventional Commits**: Título conciso indicando o tipo da alteração (`feat:`, `fix:`, `refactor:`, `style:`, `test:`, `docs:`), acompanhado de lista em tópicos detalhando com clareza o que foi modificado em cada módulo.

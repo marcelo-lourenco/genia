@@ -46,6 +46,11 @@ Ao desenvolver ou modificar componentes visuais, o agente deve seguir **obrigato
    - O botão "Entrar no GENIA" **NUNCA** deve redirecionar para páginas avulsas (como `/search`). Ele deve abrir o modal de diálogo shadcn com o formulário padrão (`LoginForm`).
    - Ao autenticar, deve atualizar o estado do usuário, fechar o modal e refletir imediatamente o avatar no cabeçalho.
 
+5. **Mensagens de Commit Obrigatórias:**
+   - No encerramento de **toda e qualquer** implementação, o agente deve gerar e apresentar a mensagem de commit.
+   - Deve ser **sempre texto puro** (proibido incluir comandos como `git add .` ou `git commit -m "..."`).
+   - Seguir padrão Conventional Commits com título semântico e detalhamento em tópicos.
+
 ---
 
 ## 4. Limites Éticos e Operacionais
