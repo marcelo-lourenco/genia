@@ -69,3 +69,25 @@ O FamilySearch utiliza o padrão **GEDCOM X JSON**. A estrutura mínima de uma P
   ]
 }
 ```
+
+---
+
+## 5. Limites Oficiais de Requisição e Rate Limiting (FamilySearch API)
+* **Código HTTP de Limitação:** O FamilySearch sinaliza restrições exclusivamente via **`HTTP 429 Too Many Requests`** (nunca 503).
+* **Header de Controle:** Em respostas 429, a API envia o cabeçalho `Retry-After: <segundos>`, indicando o tempo exato de espera antes da próxima requisição.
+* **Limites Médios por Ambiente:**
+  - **Produção:** ~15 a 20 requisições por segundo por token de usuário/Developer Key, com suporte a rajadas curtas (*burst*).
+  - **Sandbox / Integração:** Entre 1.000 a 5.000 chamadas diárias e ~10 req/s, variando com o nível da chave de desenvolvedor.
+* **Risco de Bloqueio:** O FamilySearch **não bloqueia permanentemente** nem cancela contas por atingir o limite de taxa rotineiro. Ele apenas suspende temporariamente novas respostas pelo período estipulado em `Retry-After`. Bloqueios só ocorrem em violações extremas de Termos de Uso (ex: scraping massivo de pessoas vivas ou DDoS).
+* **Mitigação Nativa no Sistema (`src/services/familysearch/client.ts`):**
+  - Algoritmo de **Exponential Backoff com Jitter** já ativo no cliente HTTP.
+  - Ao receber `HTTP 429`, o cliente respeita `Retry-After`, aguarda o intervalo com aleatoriedade e reexecuta a chamada até 3 vezes de forma transparente.
+
+---
+
+## 6. Diferença Crítica: Erro 503 (Gemini) vs Erro 429 (FamilySearch)
+* **Erro `HTTP 503 UNAVAILABLE ("This model is currently experiencing high demand")`:**
+  - Origem: **Google Gemini API**, referente à infraestrutura de inferência de IA em momentos de pico de tráfego mundial.
+  - Não consome tokens, não deduz da cota da chave e não tem qualquer relação com o FamilySearch.
+  - Mitigado via **Cascata de Modelos** (Failover automático para `gemini-3.5-flash-lite` / `gemini-flash-lite-latest`) em `src/app/api/audit/diagnosis/route.ts`.
+

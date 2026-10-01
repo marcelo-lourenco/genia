@@ -1,7 +1,2 @@
 perfeito, agora, vamos os detalhes das paginas
 1- o projeto não deve ser focado nos dados da conversa iniciam. com referencias explicitas ao Harlampe Colosovschi ou Ivan Colosovski
-
-
-Interface de Chat Interativa com o Agente: Adicionar um assistente conversacional (copiloto lateral ou flutuante) que você possa interagir em linguagem natural para pedir pesquisas, analisar documentos ou tirar dúvidas sobre a árvore.
-Agente de Investigação Autônoma de Ponta a Ponta: Um fluxo onde você seleciona uma lacuna da árvore (/audit) e o agente pesquisa sozinho os microfilmes, decifra o fólio com o Gemini Vision e gera a entrada no Diário GPS.
-Refinamento da Paleografia Multimodal (/search): Aprimorar a visualização dos fólios com zoom dinâmico, realce de trechos transcritos e tradução automática de cirílico/romeno para português.

@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
     const { rootPersonName, totalAncestors, generations, gaps } = body;
 
     const ai = getGeminiClient();
-    const model = "gemini-3.5-flash";
 
     const prompt = `Você é um Genealogista Profissional Sênior e Especialista em Auditoria de Árvores do FamilySearch, credenciado pelo Genealogical Proof Standard (GPS).
 
@@ -29,12 +28,37 @@ INSTRUÇÕES PARA O DIAGNÓSTICO:
 
 Mantenha o tom profissional, encorajador, estruturado com tópicos em Markdown e focado em evidências reais.`;
 
-    const response = await ai.models.generateContent({
-      model,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-    });
+    const candidateModels = [
+      "gemini-3.5-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-flash-lite-latest",
+    ];
 
-    const diagnosis = response.text || "Não foi possível gerar o diagnóstico no momento.";
+    let diagnosis = "";
+    let lastError: unknown = null;
+
+    for (const model of candidateModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+        });
+
+        if (response.text) {
+          diagnosis = response.text;
+          break;
+        }
+      } catch (err: unknown) {
+        lastError = err;
+        console.warn(
+          `[Gemini Diagnosis] Model ${model} unavailable or busy, trying next fallback...`,
+        );
+      }
+    }
+
+    if (!diagnosis) {
+      throw lastError || new Error("Todos os modelos de IA estão temporariamente indisponíveis.");
+    }
 
     return NextResponse.json({
       success: true,

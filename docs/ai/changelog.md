@@ -172,3 +172,6 @@ Todas as mudanças relevantes e entregas de cada fase serão registradas neste d
   - Eliminação do ID fictício `KWQS-BB1` que disparava erro `HTTP 403 Forbidden` (registro em espaço privado/restrito).
   - Componente `TreeAuditView.tsx` agora obtém o perfil autenticado (`/api/auth/profile`) ao carregar e preenche automaticamente o campo com o ID canônico da pessoa logada no FamilySearch.
   - Execução automática da auditoria genealógica sobre a linhagem do usuário conectado, detectando lacunas e habilitando diagnóstico estratégico com IA sem qualquer erro.
+- **Resiliência contra HTTP 503 (High Demand) na IA Gemini (`/api/audit/diagnosis`):**
+  - Implementada cascata de modelos de IA (`gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-flash-lite-latest`) para mitigar sobrecargas momentâneas nos servidores da Google ("This model is currently experiencing high demand").
+  - Em caso de indisponibilidade ou instabilidade em um modelo, o sistema faz o failover automático e transparente para a próxima variante, garantindo a geração contínua do Diagnóstico Estratégico GPS.
