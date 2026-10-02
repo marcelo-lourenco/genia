@@ -172,3 +172,124 @@ export async function getPersonRelationships(personId: string): Promise<PersonRe
 
   return result;
 }
+
+export interface PersonMatchCandidate {
+  id?: string;
+  title?: string;
+  link?: string;
+}
+
+/**
+ * Retrieves prospective record matches / record hints for a person
+ * (sources or tree records suggested by FamilySearch that are NOT YET attached)
+ */
+export async function getPersonMatches(personId: string): Promise<PersonMatchCandidate[]> {
+  try {
+    const data = await familySearchFetch<{
+      entries?: Array<{
+        id?: string;
+        title?: string;
+        links?: Record<string, { href?: string }>;
+      }>;
+    }>(`/platform/tree/persons/${personId}/matches`, {
+      headers: { Accept: "application/x-gedcomx-atom+json, application/json" },
+    });
+
+    return (data.entries || []).map((e) => ({
+      id: e.id,
+      title: e.title,
+      link: e.links?.person?.href || e.links?.self?.href,
+    }));
+  } catch (_err) {
+    return [];
+  }
+}
+
+export interface PersonaRecordDetails {
+  id: string;
+  names: string[];
+  facts: Array<{ type: string; date?: string; place?: string }>;
+  certificateNumber?: string;
+  filmNumber?: string;
+  imageNumber?: string;
+  imageArk?: string;
+}
+
+/**
+ * Inspeciona profundamente o registro civil, assento paroquial ou cartão de imigração subjacente
+ * a partir do ID do persona no FamilySearch, extraindo número do termo, microfilme DGS, fólio e fatos.
+ */
+export async function getPersonaRecordDetails(
+  personaId: string,
+): Promise<PersonaRecordDetails | null> {
+  try {
+    const cleanId = personaId.replace(/.*[:/]/, "").trim();
+    if (!cleanId) return null;
+
+    const res = await familySearchFetch<{
+      persons?: Array<{
+        display?: { name?: string; gender?: string };
+        facts?: Array<{
+          type?: string;
+          date?: { original?: string };
+          place?: { original?: string };
+        }>;
+      }>;
+      fields?: Array<{
+        id?: string;
+        type?: string;
+        values?: Array<{ labelId?: string; text?: string }>;
+      }>;
+      sourceDescriptions?: Array<{
+        about?: string;
+      }>;
+    }>(`/platform/records/personas/${cleanId}`, {
+      headers: { Accept: "application/x-gedcomx-atom+json, application/json" },
+    });
+
+    if (!res?.persons?.length) return null;
+
+    const names = res.persons.map((p) => p.display?.name || "").filter(Boolean);
+    const facts = (res.persons[0]?.facts || []).map((f) => ({
+      type: f.type?.split("/").pop() || "Evento",
+      date: f.date?.original,
+      place: f.place?.original,
+    }));
+
+    let certificateNumber: string | undefined;
+    let filmNumber: string | undefined;
+    let imageNumber: string | undefined;
+
+    for (const field of res.fields || []) {
+      for (const val of field.values || []) {
+        if (
+          val.labelId?.includes("CERTIFICATE") ||
+          val.labelId?.includes("ENTRY_NBR") ||
+          val.labelId?.includes("TERMO")
+        ) {
+          certificateNumber = val.text;
+        }
+        if (val.labelId?.includes("DIGITAL_FILM_NBR") || val.labelId?.includes("FILM")) {
+          filmNumber = val.text;
+        }
+        if (val.labelId?.includes("IMAGE_NBR") || val.labelId?.includes("PAGE")) {
+          imageNumber = val.text;
+        }
+      }
+    }
+
+    const imageArk = res.sourceDescriptions?.find((sd) => sd.about?.includes("3:1:"))?.about;
+
+    return {
+      id: cleanId,
+      names,
+      facts,
+      certificateNumber,
+      filmNumber,
+      imageNumber,
+      imageArk,
+    };
+  } catch (_err) {
+    return null;
+  }
+}

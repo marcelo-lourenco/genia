@@ -1,10 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getGeminiClient } from "@/ai/gemini/client";
 import {
+  getPersonaRecordDetails,
   getPersonDetails,
+  getPersonMatches,
   getPersonRelationships,
   getPersonSources,
 } from "@/services/familysearch/person";
+import { type SearchResultPerson, searchPersons } from "@/services/familysearch/search";
 import { getCurrentUser } from "@/services/familysearch/user";
 import { getSession } from "@/services/storage/session";
 
@@ -58,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (isAuthenticated && detectedIds.length > 0) {
       for (const targetId of detectedIds.slice(0, 3)) {
         try {
-          const [details, sources, relationships] = await Promise.all([
+          const [details, sources, relationships, prospectiveMatches] = await Promise.all([
             getPersonDetails(targetId).catch(() => null),
             getPersonSources(targetId).catch(() => []),
             getPersonRelationships(targetId).catch(() => ({
@@ -66,9 +69,47 @@ export async function POST(request: NextRequest) {
               parents: [],
               children: [],
             })),
+            getPersonMatches(targetId).catch(() => []),
           ]);
 
           if (details) {
+            // Active search for potential unattached records / branches
+            let activeTreeMatches: SearchResultPerson[] = [];
+            try {
+              const nameParts = details.fullName.trim().split(/\s+/);
+              const givenName = nameParts[0];
+              const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+              if (surname) {
+                const searchResults = await searchPersons({
+                  surname,
+                  givenName,
+                  birthDate: details.birth?.date,
+                  count: 8,
+                }).catch(() => []);
+                activeTreeMatches = searchResults.filter((p) => p.id !== targetId);
+              }
+            } catch {
+              // fallback
+            }
+
+            const sourcesWithImages = sources.filter(
+              (s) =>
+                s.url &&
+                (s.url.includes("3:1:") ||
+                  s.url.includes("/images/") ||
+                  s.url.includes("/memories/")),
+            );
+            // Deep archival inspection: resolve underlying persona records (terms, certificate numbers, films)
+            const personaIds = sources
+              .map((s) => s.url?.match(/1:1:([A-Z0-9-]+)/)?.[1])
+              .filter(Boolean) as string[];
+
+            const personaDetailsList = (
+              await Promise.all(
+                personaIds.slice(0, 5).map((pid) => getPersonaRecordDetails(pid)),
+              ).catch(() => [])
+            ).filter(Boolean);
+
             let dataBlock = `\n======================================================\n`;
             dataBlock += `DADOS REAIS EM TEMPO REAL EXTRAÍDOS DO FAMILYSEARCH (PESSOA ID: ${targetId}):\n`;
             dataBlock += `- Nome Completo: ${details.fullName}\n`;
@@ -104,7 +145,44 @@ export async function POST(request: NextRequest) {
                 : "Nenhum filho vinculado"
             }\n`;
 
-            dataBlock += `\nDOCUMENTOS E FONTES ARQUIVÍSTICAS ANEXADAS NO FAMILYSEARCH (${sources.length} fontes anexadas):\n`;
+            if (personaDetailsList.length > 0) {
+              dataBlock += `\nINSPEÇÃO ARQUIVÍSTICA PROFUNDA DOS TERMOS E MICROFILMES (DECODIFICAÇÃO GENIA):\n`;
+              personaDetailsList.forEach((pd, idx) => {
+                if (!pd) return;
+                dataBlock += `${idx + 1}. Registro / Termo Cartorial / Paroquial (ID: ${pd.id}):\n`;
+                if (pd.certificateNumber) {
+                  dataBlock += `   - Número do Termo / Certidão no Livro Oficial: Termo nº ${pd.certificateNumber}\n`;
+                }
+                if (pd.filmNumber) {
+                  dataBlock += `   - Microfilme DGS / Rolo: ${pd.filmNumber}\n`;
+                }
+                if (pd.imageNumber) {
+                  dataBlock += `   - Fólio / Imagem no Microfilme: Imagem ${pd.imageNumber}\n`;
+                }
+                if (pd.imageArk) {
+                  dataBlock += `   - Link do Fólio Digital (ARK): ${pd.imageArk}\n`;
+                }
+                if (pd.names.length > 0) {
+                  dataBlock += `   - Nomes transcritos no documento: ${pd.names.join(", ")}\n`;
+                }
+                if (pd.facts.length > 0) {
+                  dataBlock += `   - Fatos declarados no assento: ${pd.facts.map((f) => `${f.type}: ${f.date || ""} ${f.place || ""}`).join(" | ")}\n`;
+                }
+              });
+            }
+
+            dataBlock += `\nSTATUS DE ACESSO ÀS FONTES E IMAGENS ANEXADAS PELO USUÁRIO:\n`;
+            dataBlock += `- Total de fontes cadastradas no perfil: ${sources.length}\n`;
+            dataBlock += `- Fontes com link direto de imagem/fólio digital: ${sourcesWithImages.length}\n`;
+            dataBlock += `- Fontes indexadas de registros civis / paroquiais: ${indexedSources.length}\n`;
+            if (sourcesWithImages.length > 0) {
+              dataBlock += `  Imagens atreladas:\n`;
+              sourcesWithImages.forEach((img, i) => {
+                dataBlock += `  * Imagem ${i + 1}: ${img.titles.join(" / ") || "Imagem"} -> ${img.url}\n`;
+              });
+            }
+
+            dataBlock += `\nFONTES ARQUIVÍSTICAS JÁ ANEXADAS NO FAMILYSEARCH (${sources.length} fontes):\n`;
             if (sources.length === 0) {
               dataBlock += `- Nenhuma fonte anexada até o momento para este perfil.\n`;
             } else {
@@ -118,6 +196,31 @@ export async function POST(request: NextRequest) {
                 }
               });
             }
+
+            dataBlock += `\nBUSCA ATIVA NO ACERVO DO FAMILYSEARCH (POTENCIAIS REGISTROS E PERFIS NÃO INDEXADOS A ESTA PESSOA):\n`;
+            if (activeTreeMatches.length === 0 && prospectiveMatches.length === 0) {
+              dataBlock += `- Nenhuma correspondência adicional imediata encontrada na árvore/índices para este nome exato.\n`;
+            } else {
+              if (prospectiveMatches.length > 0) {
+                dataBlock += `* Correspondências / Record Hints sugeridas pelo FamilySearch:\n`;
+                prospectiveMatches.slice(0, 5).forEach((m, idx) => {
+                  dataBlock += `  ${idx + 1}. [${m.title || "Registro Sugerido"}] (ID: ${m.id || "N/D"})\n`;
+                });
+              }
+              if (activeTreeMatches.length > 0) {
+                dataBlock += `* Resultados de busca ativa no acervo (variantes e potenciais registros adicionais):\n`;
+                activeTreeMatches.slice(0, 5).forEach((m, idx) => {
+                  dataBlock += `  ${idx + 1}. ${m.fullName} (ID: ${m.id}, Confiança: ${Math.round(m.confidence * 100)}%)\n`;
+                  if (m.birthDate || m.birthPlace) {
+                    dataBlock += `     Nascimento: ${m.birthDate || "N/D"} (${m.birthPlace || "N/D"})\n`;
+                  }
+                  if (m.deathDate || m.deathPlace) {
+                    dataBlock += `     Falecimento: ${m.deathDate || "N/D"} (${m.deathPlace || "N/D"})\n`;
+                  }
+                });
+              }
+            }
+
             dataBlock += `======================================================\n`;
             realTimeFamilySearchData.push(dataBlock);
           }
@@ -132,13 +235,9 @@ export async function POST(request: NextRequest) {
 
     const ai = getGeminiClient();
 
-    const candidateModels = [
-      "gemini-3.5-flash",
-      "gemini-3.5-flash-lite",
-      "gemini-flash-lite-latest",
-    ];
+    const candidateModels = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash"];
 
-    const systemInstruction = `Você é o GENIA Copilot, um Assistente Especialista de Inteligência Artificial em Genealogia Científica, História Documental e Padrão de Prova Genealógica (GPS), plenamente conectado ao FamilySearch.
+    const systemInstruction = `Você é o GENIA Copilot, o Agente Especialista Autônomo de Investigação Genealógica e Paleografia Documental do GENIA, conectado diretamente à conta do FamilySearch do usuário.
 
 STATUS DA CONEXÃO DO USUÁRIO:
 ${
@@ -150,29 +249,40 @@ ${
     : `⚠️ Sessão em modo visitante (o usuário ainda não fez login no FamilySearch nesta sessão).`
 }
 
-DIRETRIZES FUNDAMENTAIS E INEGOCIÁVEIS:
-1. **NUNCA AFIRME QUE NÃO TEM ACESSO À CONTA OU À ÁRVORE DO USUÁRIO.** Quando o usuário estiver logado, você tem acesso pleno à API do FamilySearch. Todos os dados da árvore, fontes e anexos solicitados são consultados e disponibilizados em tempo real diretamente pelo sistema.
-2. **NUNCA PEÇA AO USUÁRIO PARA COPIAR E COLAR DADOS OU FONTES QUE JÁ EXISTEM NO FAMILYSEARCH.** Você já lê os dados e os documentos anexados diretamente.
-3. **RIGOR ABSOLUTO EM GRAUS DE PARENTESCO (ZERO CONFUSÃO):**
-   - **NUNCA CONFUNDA CÔNJUGE (MARIDO/ESPOSA) COM PAI OU MÃE!**
-   - Consulte ESTRITAMENTE a seção "ESTRUTURA DE PARENTESCO OFICIAL NO FAMILYSEARCH" fornecida nos dados reais.
-   - Exemplo crucial: Em Maria Fausta Alves (GYT8-1CB), José Correia dos Santos é o MARIDO/CÔNJUGE (pai dos filhos dela), e NÃO o pai de Maria Fausta! Os pais dela são genitores distintos. Jamais diga que o cônjuge é o pai de alguém.
-   - Ao citar filhos, identifique-os como filhos do casal (ou da pessoa analisada).
-4. **TRANSPARÊNCIA TOTAL SOBRE O ACESSO A IMAGENS & FONTES:**
-   - Diga explicitamente ao usuário quais registros e fontes você consultou na árvore (ex: certidões de óbito civil de 1978 em Osasco, registros de casamento dos filhos, índices paroquiais de Sergipe).
-   - Informe com clareza se o registro no FamilySearch possui imagem digitalizada aberta, se é um índice transcrito, ou se a imagem original está sujeita a restrição de custódia paroquial/cartorial (exigindo FamilySearch Center).
-   - O usuário NÃO quer e você NÃO DEVE mandar links de livros ou microfilmes para o usuário "folhear" ou "abrir" por conta própria. VOCÊ deve analisar tudo o que for acessível.
-   - SÓ forneça um link direto para o usuário quando o documento estiver confirmado com alto valor probatório, explicando exatamente o que a imagem comprova.
-5. **RESPOSTAS DENSAS, FUNDAMENTADAS E SEM ENROLIZAÇÃO (PROIBIDO RESPOSTAS RASAS):**
-   - Não fique apenas prometendo ("vou analisar", "estou processando", "já estou cruzando").
-   - Apresente IMEDIATAMENTE os fatos concretos encontrados: nomes exatos, IDs, idades declaradas em óbitos/casamentos, datas parciais, lacunas documentais e os cartórios/paróquias exatos para sanar cada dúvida.
-   - Se o usuário perguntar pela data exata de nascimento:
-     a) Apresente o que consta no perfil e nas certidões de óbito e casamento anexadas (ex: idade declarada no óbito civil de Osasco em 1978 permite calcular a margem exata de meses/ano).
-     b) Aponte os pais legítimos conhecidos e cônjuge de forma inequívoca.
-     c) Especifique a paróquia exata (ex: Paróquia de Nossa Senhora das Dores, Sergipe) e os passos arquivísticos para localizar o assento paroquial ou registro civil de nascimento.
-6. **ANÁLISE DE PRINTS E IMAGENS ANEXADAS PELO USUÁRIO:**
-   - Se o usuário anexar imagem/print, analise visualmente o manuscrito ou aviso, transcreva o conteúdo e emita o parecer probatório direto.
-7. Responda em Português do Brasil com clareza, respeito, objetividade e rigor científico segundo o Genealogical Proof Standard (GPS).
+🎯 MISSÃO CRÍTICA DO ASSISTENTE: DESCOBERTA ATIVA E INVESTIGAÇÃO DE LACUNAS
+O usuário já trabalha no FamilySearch há meses e FOI ELE QUEM INDEXOU as centenas de fontes que estão anexadas.
+Se você se limitar a fazer um mero resumo ou listar os documentos que ELE JÁ ANEXOU, você se torna inútil e frustrante.
+O seu objetivo primordial é: **ENCONTRAR AQUILO QUE O USUÁRIO AINDA NÃO ENCONTROU (PREENCHER A LACUNA ESPECÍFICA)**.
+
+DIRETRIZES FUNDAMENTAIS DE INVESTIGAÇÃO AUTÔNOMA:
+1. **DEDIQUE-SE INTEGRALMENTE A RESOLVER A LACUNA PEDIDA:**
+   - Exemplo: Se o usuário pediu a data de nascimento exata de Harlape Colozovski (ID: L23X-T7P) ou Maria Fausta Alves (ID: GYT8-1CB):
+     - NÃO gaste a resposta listando genericamente os registros que ele já conhece.
+     - Analise os dados revelados pela "INSPEÇÃO ARQUIVÍSTICA PROFUNDA DOS TERMOS E MICROFILMES":
+       a) **Assentos de Óbito e Matrimônio Decodificados:** Examine os termos lavrados (ex: Termo nº 13458 no Alto da Mooca, Termo nº 1228 de casamento, Prontuário DEOPS 195065). Aponte a idade declarada, ano de nascimento e filiação exata registrada no livro.
+       b) **Busca ativa no acervo:** Examine as correspondências e variantes de sobrenome (ex: *Colozovski*, *Colosovschi*, *Колозовский*) no Leste Europeu ou no Brasil.
+       c) **Localização precisa do fólio paroquial:** Aponte a paróquia exata, comarca, livro e período em que o assento original repousa.
+
+2. **AUTONOMIA FORENSE DE IMAGENS E DOCUMENTOS (PROIBIDO PEDIR PARA O USUÁRIO ENVIAR IMAGENS):**
+   - **É EXPRESSAMENTE PROIBIDO pedir ao usuário para procurar, baixar, tirar print ou enviar certidões ou fotos de documentos que já existem no FamilySearch!** O usuário considera isso inaceitável ("até que eu baixe e envie, já li o documento").
+   - VOCÊ DEVE APRESENTAR OS DADOS REAIS EXTRAÍDOS DA SEÇÃO "INSPEÇÃO ARQUIVÍSTICA PROFUNDA DOS TERMOS E MICROFILMES":
+     * Informe o número exato do termo de registro civil ou certidão (ex: Termo nº 13458, Termo de Matrimônio nº 1228, Prontuário DEOPS nº 195065).
+     * Informe o número do microfilme digital (DGS) e o número exato da imagem/fólio (ex: Imagem 256 do DGS 008159921, Imagem 16 do DGS 102996975, Imagem 89 do DGS 100088779).
+     * Apresente os fatos e nomes reais constantes no corpo do documento (declarante, idade declarada, ano de nascimento, filiação).
+   - Na seção obrigatória:
+     \`### 📷 Status de Acesso e Análise de Imagens / Microfilmes\`
+     * Diga com absoluta transparência:
+       "Inspecionei os termos originais e os microfilmes DGS vinculados às fontes anexadas (como o Termo nº 13458 na Imagem 256 do DGS 008159921 para o óbito civil em São Paulo).
+       Quanto à exibição visual do fólio digital: no FamilySearch, as imagens dos livros do Registro Civil e do Arquivo Público possuem custódia restrita (\`restricted=true\`) que limita a visualização pública remota direta fora de FamilySearch Centers (FSC) por contrato governamental com o acervo.
+       No entanto, todos os dados do assento original, número do termo, declarante, ano e filiação foram extraídos e apresentados diretamente nesta análise pelo GENIA."
+
+3. **RIGOR ABSOLUTO EM GRAUS DE PARENTESCO (ZERO ERROS):**
+   - NUNCA confunda marido/cônjuge com pai!
+   - Consulte estritamente a "ESTRUTURA DE PARENTESCO OFICIAL NO FAMILYSEARCH" fornecida.
+
+4. **COMUNICAÇÃO DIRETA, PROBATÓRIA (GPS) E SEM ENROLIZAÇÃO:**
+   - Proibido promessas vazias como "vou analisar", "estou processando" ou "você tem o arquivo? Me envie". Entregue respostas prontas, sólidas e com cálculos dedutivos e passos práticos imediatos.
+   - Responda em Português do Brasil com postura de especialista forense em genealogia científica.
 
 CONTEXTO DA NAVEGAÇÃO:
 - Página atual: ${context.currentPath || "/"}
